@@ -1,10 +1,5 @@
 // tests/e2e/startup.spec.ts
-import {
-  test,
-  expect,
-  _electron as electron,
-  ElectronApplication,
-} from "@playwright/test";
+import { test, expect, _electron as electron, ElectronApplication } from '@playwright/test';
 
 const PERF_BUDGET = {
   // Actual Electron time (excludes test harness)
@@ -19,29 +14,25 @@ test.afterEach(async () => {
   await app?.close();
 });
 
-test.describe("Startup Performance", () => {
+test.describe('Startup Performance', () => {
   test(`app startup < ${PERF_BUDGET.INTERACTIVE_MS}ms (measured internally)`, async () => {
-    app = await electron.launch({ args: ["."] });
+    app = await electron.launch({ args: ['.'] });
     const window = await app.firstWindow();
 
     // Wait for app's own measurement
     await window.waitForSelector('[data-ready="true"]', { timeout: 3000 });
 
-    const startupMs = await window
-      .locator("#app")
-      .getAttribute("data-startup-ms");
+    const startupMs = await window.locator('#app').getAttribute('data-startup-ms');
     const actualStartup = parseInt(startupMs!, 10);
 
     console.log(`Internal startup measurement: ${actualStartup}ms`);
-    expect(actualStartup, "Startup exceeds budget").toBeLessThan(
-      PERF_BUDGET.INTERACTIVE_MS,
-    );
+    expect(actualStartup, 'Startup exceeds budget').toBeLessThan(PERF_BUDGET.INTERACTIVE_MS);
   });
 });
 
-test.describe("Runtime Performance", () => {
+test.describe('Runtime Performance', () => {
   test.beforeEach(async () => {
-    app = await electron.launch({ args: ["."] });
+    app = await electron.launch({ args: ['.'] });
     const window = await app.firstWindow();
     await window.waitForSelector('[data-ready="true"]', { timeout: 3000 });
   });

@@ -1,17 +1,25 @@
 <!-- src/index.html -->
+
 <!doctype html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electron Performance Example</title>
+    <!-- Production: strict -->
+    <meta
+      id="csp"
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:"
+    />
+
+    <!-- Development: allows devtools, hot reload, etc -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
+    />
+  </head>
   <body>
     <div id="app" data-ready="false" data-startup-ms="">Loading...</div>
-    <script>
-      (async () => {
-        const mainStartTime = await window.electronPerf.getStartTime();
-        const now = Date.now();
-        const el = document.getElementById("app");
-        el.dataset.startupMs = now - mainStartTime;
-        el.dataset.ready = "true";
-        el.textContent = "Ready";
-      })();
-    </script>
+    <script src="renderer.js"></script>
   </body>
 </html>
