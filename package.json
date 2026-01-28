@@ -1,0 +1,15 @@
+{
+  "name": "unimo",
+  "version": "0.0.1",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "playwright test",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "electron": "^40.0.0",
+    "husky": "^9.1.7"
+  }
+}
