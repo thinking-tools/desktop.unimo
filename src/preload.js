@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   execute: {
     command: id => ipcRenderer.invoke('execute:command', id),
+    action: (action, query) => ipcRenderer.invoke('execute:action', action, query),
   },
   window: {
     hide: () => ipcRenderer.invoke('window:hide'),

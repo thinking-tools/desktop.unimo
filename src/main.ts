@@ -3,6 +3,7 @@ import { join } from 'path';
 import { localEngine } from './search-engine';
 import { execute, registerCallback } from './actions';
 import { loadIcon } from './providers/apps';
+import { browserManager } from './browser/browser-manager';
 
 let tray: Tray | null = null;
 let win: BrowserWindow | null = null;
@@ -56,6 +57,8 @@ const createWindow = () => {
 
   win.loadFile('src/index.html');
 
+  browserManager.attach(win);
+
   if (isDev) {
     win.webContents.openDevTools({ mode: 'detach' });
   }
@@ -65,12 +68,13 @@ const createWindow = () => {
   });
 
   win.on('closed', () => {
+    browserManager.detach();
     win = null;
   });
 
   win.once('ready-to-show', () => {
     win?.show();
-    win?.focus(); // <-- add this
+    win?.focus();
   });
 
   return win;
@@ -120,7 +124,7 @@ if (!gotLock) {
     ipcMain.handle('env:is-dev', () => isDev);
     ipcMain.handle('perf:get-start-time', () => mainStartTime);
     ipcMain.handle('search:query', (_e, query: string) => localEngine.search(query));
-    ipcMain.handle('search:web', (_e, query: string) => console.warn(query));
+    // ipcMain.handle('search:web', (_e, query: string) => browserManager.createTab(query));
     ipcMain.handle('search:history', (_e, _query: string) => []); // TODO: implement
     ipcMain.handle('apps:icon', (_e, id: string) => loadIcon(id));
     ipcMain.handle('chat:ask', (_e, _msg: string, _opts: unknown) => ({ id: '', response: '' }));
@@ -129,13 +133,24 @@ if (!gotLock) {
     ipcMain.handle('chat:remove-chat', (_e, _id: string) => true);
     ipcMain.handle('chat:get-history', () => []);
     ipcMain.handle('chat:clear-history', () => true);
+    // Execute
+    ipcMain.handle('execute:command', (_e, id: string) => execute(id));
+    ipcMain.handle('execute:action', (_e, action: string, query: string) => {
+      console.log('Executing action:', action, 'with query:', query);
+      switch (action) {
+        case 'note': {
+        }
+        case 'web': {
+          browserManager.createSearchTab(query, false);
+        }
+        case 'chat': {
+        }
+      }
+    });
 
     ipcMain.handle('window:set-ignore-mouse', (_e, ignore: boolean) => {
       win?.setIgnoreMouseEvents(ignore, { forward: true });
     });
-
-    // Execute
-    ipcMain.handle('execute:command', (_e, id: string) => execute(id));
 
     ipcMain.handle('window:hide', () => {
       win?.hide();

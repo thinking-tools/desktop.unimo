@@ -9,6 +9,11 @@
   const resultsContainer = document.querySelector('.results');
   const searchBox = document.querySelector('.search-box');
   const el = document.getElementById('app');
+  const actionButtons = document.querySelector('.action-buttons');
+
+  const updateActionButtons = query => {
+    actionButtons.hidden = query.trim().length <= 1;
+  };
 
   // Track state to avoid redundant IPC and detect desync
   let ignoreMouseState = true;
@@ -55,6 +60,7 @@
     activeIndex = 0;
     resultsContainer.innerHTML = '';
     input.value = '';
+    actionButtons.hidden = true;
   };
 
   const execute = async (id, keepOpen = false) => {
@@ -100,10 +106,21 @@
   };
 
   const doSearch = async query => {
+    updateActionButtons(query);
     results = query.trim() === '' ? [] : await window.electronAPI.search.query(query);
     activeIndex = 0;
     renderResults();
   };
+
+  actionButtons.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const query = input.value.trim();
+    if (query.length <= 1) return;
+
+    const action = btn.dataset.action;
+    window.electronAPI.execute.action(action, query);
+  });
 
   input.addEventListener('input', () => {
     clearTimeout(debounceTimer);

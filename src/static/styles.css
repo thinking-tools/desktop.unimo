@@ -178,3 +178,44 @@ form {
 .results::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+.action-buttons {
+  -webkit-app-region: no-drag;
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(30, 30, 32, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.action-buttons[hidden] {
+  display: none;
+}
+
+.action-buttons button {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.action-buttons button:hover {
+  color: #e4e4e7;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.action-buttons button:active {
+  background: rgba(99, 102, 241, 0.25);
+}
