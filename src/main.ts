@@ -21,13 +21,15 @@ const createWindow = () => {
     return win;
   }
 
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const cursor = screen.getCursorScreenPoint();
+  const currentDisplay = screen.getDisplayNearestPoint(cursor);
+  const { x, y, width, height } = currentDisplay.workArea;
 
   win = new BrowserWindow({
     width,
     height,
-    x: 0,
-    y: 0,
+    x,
+    y,
     show: false,
     frame: false,
     transparent: true,
@@ -47,6 +49,7 @@ const createWindow = () => {
 
   if (process.platform === 'darwin') {
     app.dock?.hide();
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   }
 
   win.loadFile('src/index.html');
@@ -74,6 +77,13 @@ const toggleWindow = () => {
   } else if (win.isVisible()) {
     win.hide();
   } else {
+    const cursor = screen.getCursorScreenPoint();
+    const currentDisplay = screen.getDisplayNearestPoint(cursor);
+    const { x, y, width, height } = currentDisplay.workArea;
+
+    // Set position with animate=false, then size, then show
+    win.setPosition(x, y, false);
+    win.setSize(width, height, false);
     win.show();
     win.focus();
   }

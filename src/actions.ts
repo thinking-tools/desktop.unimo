@@ -33,7 +33,7 @@ export const registerCallback = (name: string, fn: () => void | Promise<void>): 
 };
 
 export const execute = async (id: string): Promise<boolean> => {
-  console.warn(`Executing action: ${id}`);
+  // console.warn(`Executing action: ${id}`);
   const action = registry.get(id);
   if (!action) return false;
 
