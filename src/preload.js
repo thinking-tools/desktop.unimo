@@ -25,6 +25,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     show: () => ipcRenderer.invoke('window:show'),
     close: () => ipcRenderer.invoke('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+
+    setIgnoreMouse: ignore => ipcRenderer.invoke('window:set-ignore-mouse', ignore),
+    onShow: callback => ipcRenderer.on('window:show', callback),
   },
   perf: {
     getStartTime: () => ipcRenderer.invoke('perf:get-start-time'),

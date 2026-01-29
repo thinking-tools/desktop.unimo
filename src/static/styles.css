@@ -12,14 +12,6 @@ body {
   color: #e4e4e7;
 }
 
-#backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  /* barely visible but catches clicks */
-  background: rgba(0, 0, 0, 0.01);
-}
-
 *,
 *::before,
 *::after {

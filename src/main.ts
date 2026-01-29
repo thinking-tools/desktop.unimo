@@ -59,7 +59,7 @@ const createWindow = () => {
   }
 
   win.on('blur', () => {
-    if (!isDev) win?.hide();
+    win?.hide();
   });
 
   win.on('closed', () => {
@@ -85,6 +85,7 @@ const toggleWindow = () => {
     win.setPosition(x, y, false);
     win.setSize(width, height, false);
     win.show();
+    win.webContents.send('window:show');
     win.focus();
   }
 };
@@ -117,6 +118,10 @@ app.whenReady().then(() => {
   ipcMain.handle('chat:remove-chat', (_e, _id: string) => true);
   ipcMain.handle('chat:get-history', () => []);
   ipcMain.handle('chat:clear-history', () => true);
+
+  ipcMain.handle('window:set-ignore-mouse', (_e, ignore: boolean) => {
+    win?.setIgnoreMouseEvents(ignore, { forward: true });
+  });
 
   // Execute
   ipcMain.handle('execute:command', (_e, id: string) => execute(id));

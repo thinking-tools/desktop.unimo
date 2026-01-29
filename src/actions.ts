@@ -40,7 +40,7 @@ export const execute = async (id: string): Promise<boolean> => {
   switch (action.type) {
     case 'app:launch':
       if (process.platform === 'darwin') {
-        console.log('[execute] Launching app on macOS:', action.payload);
+        // console.log('[execute] Launching app on macOS:', action.payload);
         // Use open -a for app bundles, open for paths
         const cmd = action.payload.endsWith('.app') ? `open -a "${action.payload}"` : `open "${action.payload}"`;
         exec(cmd, (err, stdout, stderr) => {

@@ -5,28 +5,42 @@
     document.documentElement.classList.add('dev-mode');
     console.log('Running in development mode');
   }
-
   const input = document.getElementById('search-input');
   const resultsContainer = document.querySelector('.results');
+  const searchBox = document.querySelector('.search-box');
+  const el = document.getElementById('app');
+
+  const setClickThrough = ignore => window.electronAPI.window.setIgnoreMouse(ignore);
+
+  // Start with click-through enabled
+  setClickThrough(true);
+  [searchBox, resultsContainer].forEach(target => {
+    target.addEventListener('mouseenter', () => setClickThrough(false));
+    target.addEventListener('mouseleave', () => setClickThrough(true));
+  });
+
   let activeIndex = 0;
   let results = [];
   let debounceTimer = null;
   const mainStartTime = await window.electronAPI.perf.getStartTime();
   const now = Date.now();
-  const el = document.getElementById('app');
+
+  const hide = () => {
+    window.electronAPI.window.hide();
+  };
+
+  const reset = () => {
+    results = [];
+    activeIndex = 0;
+    resultsContainer.innerHTML = '';
+    input.value = '';
+  };
 
   const execute = async (id, keepOpen = false) => {
     if (!id) return;
     const success = await window.electronAPI.execute.command(id);
     if (success && !keepOpen) hide();
     else if (!success) console.error('Failed to execute:', id);
-  };
-
-  const hide = () => {
-    window.electronAPI.window.hide();
-    results = [];
-    resultsContainer.innerHTML = '';
-    input.value = '';
   };
 
   el.dataset.startupMs = now - mainStartTime;
@@ -62,6 +76,7 @@
       }
     });
   };
+
   const doSearch = async query => {
     if (query.trim() === '') {
       results = [];
@@ -119,6 +134,7 @@
   });
 
   resultsContainer.addEventListener('click', e => {
+    console.warn('click event', e);
     const item = e.target.closest('.result-item');
     if (item) {
       execute(item.dataset.id);
@@ -134,6 +150,10 @@
         renderResults();
       }
     }
+  });
+
+  window.electronAPI.window.onShow?.(() => {
+    input.focus();
   });
 
   // initial load
