@@ -4,7 +4,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Electron Performance Example</title>
+    <title>unimo</title>
     <!-- Production: strict -->
     <meta
       id="csp"
@@ -17,9 +17,46 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
     />
+
+    <link rel="stylesheet" href="static/styles.css" />
   </head>
   <body>
-    <div id="app" data-ready="false" data-startup-ms="">Loading...</div>
+    <div id="backdrop"></div>
+    <div id="app" data-ready="false" data-startup-ms="">
+      <div class="search-box">
+        <form>
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Search, talk or note ..."
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            autofocus
+          />
+        </form>
+      </div>
+      <div class="results">
+        <!-- Example items -->
+        <!-- <div class="result-item active">
+          <div class="result-icon">📁</div>
+          <div class="result-content">
+            <div class="result-title">Open Project</div>
+            <div class="result-subtitle">~/code/lattice-sdk</div>
+          </div>
+          <span class="result-shortcut">⏎</span>
+        </div>
+        <div class="result-item">
+          <div class="result-icon">⚙️</div>
+          <div class="result-content">
+            <div class="result-title">Settings</div>
+            <div class="result-subtitle">App preferences</div>
+          </div>
+        </div> -->
+      </div>
+    </div>
+
     <script src="renderer.js"></script>
   </body>
 </html>

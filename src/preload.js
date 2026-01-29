@@ -1,6 +1,18 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  search: {
+    query: query => ipcRenderer.invoke('search:query', query),
+  },
+  execute: {
+    command: id => ipcRenderer.invoke('execute:command', id),
+  },
+  window: {
+    hide: () => ipcRenderer.invoke('window:hide'),
+    show: () => ipcRenderer.invoke('window:show'),
+    close: () => ipcRenderer.invoke('window:close'),
+    isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+  },
   perf: {
     getStartTime: () => ipcRenderer.invoke('perf:get-start-time'),
   },

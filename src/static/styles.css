@@ -1,0 +1,188 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  -webkit-app-region: drag;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #e4e4e7;
+}
+
+#backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  /* barely visible but catches clicks */
+  background: rgba(0, 0, 0, 0.01);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 12px;
+  z-index: 1;
+}
+
+/* Search container - frosted glass */
+.search-box {
+  -webkit-app-region: no-drag;
+  background: rgba(30, 30, 32, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 4px;
+  /* box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05); */
+}
+
+form {
+  margin: 0;
+}
+
+#search-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 18px;
+  font-weight: 400;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fafafa;
+}
+
+#search-input::-webkit-input-placeholder {
+  color: #71717a;
+}
+
+#search-input::-moz-placeholder {
+  color: #71717a;
+}
+
+#search-input:-ms-input-placeholder {
+  color: #71717a;
+}
+
+#search-input::-ms-input-placeholder {
+  color: #71717a;
+}
+
+#search-input::placeholder {
+  color: #71717a;
+}
+
+/* Results area */
+.results {
+  -webkit-app-region: no-drag;
+  flex: 1;
+  margin-top: 8px;
+  background: rgba(30, 30, 32, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow-y: auto;
+  -ms-scroll-chaining: none;
+  overscroll-behavior: contain;
+  width: auto;
+  height: auto;
+}
+
+.results:not(:has(*)) {
+  display: none;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.1s;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-item:hover,
+.result-item.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.result-item.active {
+  background: rgba(99, 102, 241, 0.25);
+}
+
+.result-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-title {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-subtitle {
+  font-size: 12px;
+  color: #71717a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-shortcut {
+  font-size: 11px;
+  color: #52525b;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* Scrollbar */
+.results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.results::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.results::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

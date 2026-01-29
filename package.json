@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build:main": "esbuild src/main.ts --bundle --platform=node --external:electron --format=cjs --outfile=dist/main.cjs",
-    "dev": "npm run build:main && NODE_ENV=development electron .",
+    "dev": "npm run build:main && NODE_ENV=development electron --watch .",
     "start": "npm run build:main && NODE_ENV=production electron .",
     "test": "npm run build:main && playwright test",
     "lint": "prettier --check 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.58.0",
-    "electron": "40.0.0",
+    "electron": "40.1.0",
     "esbuild": "0.27.2",
     "husky": "9.1.7",
     "playwright": "1.58.0",
