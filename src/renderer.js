@@ -1,31 +1,52 @@
 (async () => {
   const isDev = await window.electronAPI.env.isDev();
-
   if (isDev) {
     document.documentElement.classList.add('dev-mode');
     console.log('Running in development mode');
   }
+
   const input = document.getElementById('search-input');
   const resultsContainer = document.querySelector('.results');
   const searchBox = document.querySelector('.search-box');
   const el = document.getElementById('app');
 
-  const setClickThrough = ignore => window.electronAPI.window.setIgnoreMouse(ignore);
+  // Track state to avoid redundant IPC and detect desync
+  let ignoreMouseState = true;
+  const setClickThrough = ignore => {
+    if (ignore === ignoreMouseState) return;
+    ignoreMouseState = ignore;
+    window.electronAPI.window.setIgnoreMouse(ignore);
+  };
 
-  // Start with click-through enabled
+  // Use a single interactive zone - wrap searchBox + results in one container
+  // or track hover count for overlapping regions
+  let hoverCount = 0;
+  const onEnterInteractive = () => {
+    hoverCount++;
+    setClickThrough(false);
+  };
+  const onLeaveInteractive = () => {
+    hoverCount--;
+    if (hoverCount <= 0) {
+      hoverCount = 0;
+      setClickThrough(true);
+    }
+  };
+
   setClickThrough(true);
   [searchBox, resultsContainer].forEach(target => {
-    target.addEventListener('mouseenter', () => setClickThrough(false));
-    target.addEventListener('mouseleave', () => setClickThrough(true));
+    target.addEventListener('mouseenter', onEnterInteractive);
+    target.addEventListener('mouseleave', onLeaveInteractive);
   });
 
   let activeIndex = 0;
   let results = [];
   let debounceTimer = null;
-  const mainStartTime = await window.electronAPI.perf.getStartTime();
-  const now = Date.now();
 
   const hide = () => {
+    // Reset state before hiding
+    hoverCount = 0;
+    setClickThrough(true);
     window.electronAPI.window.hide();
   };
 
@@ -39,13 +60,15 @@
   const execute = async (id, keepOpen = false) => {
     if (!id) return;
     const success = await window.electronAPI.execute.command(id);
-    if (success && !keepOpen) hide();
-    else if (!success) console.error('Failed to execute:', id);
+    if (success && !keepOpen) {
+      reset();
+      hide();
+    } else if (!success) console.error('Failed to execute:', id);
   };
 
-  el.dataset.startupMs = now - mainStartTime;
+  const mainStartTime = await window.electronAPI.perf.getStartTime();
+  el.dataset.startupMs = Date.now() - mainStartTime;
   el.dataset.ready = 'true';
-  input.focus();
 
   const renderResults = () => {
     resultsContainer.innerHTML = results
@@ -63,12 +86,11 @@
       )
       .join('');
 
-    // Lazy load missing icons
     results.forEach(r => {
       if (!r.icon.startsWith('data:') && r.id.startsWith('app:')) {
         window.electronAPI.apps.getIcon(r.id).then(icon => {
           if (icon) {
-            r.icon = icon; // Update cache
+            r.icon = icon;
             const el = resultsContainer.querySelector(`[data-icon-id="${r.id}"]`);
             if (el) el.innerHTML = `<img src="${icon}" width="24" height="24">`;
           }
@@ -78,32 +100,19 @@
   };
 
   const doSearch = async query => {
-    if (query.trim() === '') {
-      results = [];
-    } else {
-      results = await window.electronAPI.search.query(query);
-    }
+    results = query.trim() === '' ? [] : await window.electronAPI.search.query(query);
     activeIndex = 0;
     renderResults();
   };
 
   input.addEventListener('input', () => {
     clearTimeout(debounceTimer);
-    debounceTimer = window.setTimeout(() => doSearch(input.value), 8); // ~1 frame debounce
+    debounceTimer = setTimeout(() => doSearch(input.value), 8);
   });
 
-  // input.addEventListener('blur', () => {
-  //   if (results.length === 0) {
-  //     setTimeout(() => {
-  //       hide();
-  //     }, 100);
-  //   }
-  // });
-
+  // This won't fire when ignore=true, but serves as backup
   document.addEventListener('mousedown', e => {
-    if (!el.contains(e.target)) {
-      hide();
-    }
+    if (!el.contains(e.target)) hide();
   });
 
   input.addEventListener('keydown', e => {
@@ -116,14 +125,11 @@
       if (activeIndex > 0) {
         activeIndex--;
         renderResults();
-      } else {
-        // TODO: load history here
       }
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const selected = results[activeIndex];
       if (selected) {
-        // Keep window open for commands that show UI
         const keepOpen = selected.category === 'command' && selected.id === 'cmd:settings';
         execute(selected.id, keepOpen);
       }
@@ -134,11 +140,8 @@
   });
 
   resultsContainer.addEventListener('click', e => {
-    console.warn('click event', e);
     const item = e.target.closest('.result-item');
-    if (item) {
-      execute(item.dataset.id);
-    }
+    if (item) execute(item.dataset.id);
   });
 
   resultsContainer.addEventListener('mousemove', e => {
@@ -152,11 +155,13 @@
     }
   });
 
-  window.electronAPI.window.onShow?.(() => {
+  requestAnimationFrame(() => {
+    hoverCount = 0;
+    setClickThrough(true);
     input.focus();
+    doSearch('');
   });
 
-  // initial load
   input.focus();
   doSearch('');
 })();
