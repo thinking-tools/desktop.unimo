@@ -110,9 +110,9 @@
     debounceTimer = setTimeout(() => doSearch(input.value), 8);
   });
 
-  // This won't fire when ignore=true, but serves as backup
   document.addEventListener('mousedown', e => {
-    if (!el.contains(e.target)) hide();
+    const isInteractive = e.target.closest('.search-box, .results');
+    if (!isInteractive) hide();
   });
 
   input.addEventListener('keydown', e => {
@@ -155,11 +155,15 @@
     }
   });
 
-  requestAnimationFrame(() => {
+  window.electronAPI.window.onShow(() => {
     hoverCount = 0;
     setClickThrough(true);
     input.focus();
-    doSearch('');
+  });
+
+  requestAnimationFrame(() => {
+    hoverCount = 0;
+    setClickThrough(true);
   });
 
   input.focus();
