@@ -15,6 +15,13 @@
   const now = Date.now();
   const el = document.getElementById('app');
 
+  const execute = async (id, keepOpen = false) => {
+    if (!id) return;
+    const success = await window.electronAPI.execute.command(id);
+    if (success && !keepOpen) hide();
+    else if (!success) console.error('Failed to execute:', id);
+  };
+
   const hide = () => {
     window.electronAPI.window.hide();
     results = [];
@@ -31,7 +38,7 @@
       .map(
         (r, i) => `
       <div class="result-item${i === activeIndex ? ' active' : ''}" data-id="${r.id}">
-        <div class="result-icon">${r.icon}</div>
+        <div class="result-icon" data-icon-id="${r.id}">${r.icon.startsWith('data:') ? `<img src="${r.icon}" width="24" height="24">` : r.icon}</div>
         <div class="result-content">
           <div class="result-title">${r.title}</div>
           ${r.subtitle ? `<div class="result-subtitle">${r.subtitle}</div>` : ''}
@@ -41,6 +48,19 @@
     `,
       )
       .join('');
+
+    // Lazy load missing icons
+    results.forEach(r => {
+      if (!r.icon.startsWith('data:') && r.id.startsWith('app:')) {
+        window.electronAPI.apps.getIcon(r.id).then(icon => {
+          if (icon) {
+            r.icon = icon; // Update cache
+            const el = resultsContainer.querySelector(`[data-icon-id="${r.id}"]`);
+            if (el) el.innerHTML = `<img src="${icon}" width="24" height="24">`;
+          }
+        });
+      }
+    });
   };
   const doSearch = async query => {
     if (query.trim() === '') {
@@ -84,10 +104,14 @@
       } else {
         // TODO: load history here
       }
-    } else if (e.key === 'Enter' && results[activeIndex]) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      console.log('Selected:', results[activeIndex]);
-      // TODO: execute action
+      const selected = results[activeIndex];
+      if (selected) {
+        // Keep window open for commands that show UI
+        const keepOpen = selected.category === 'command' && selected.id === 'cmd:settings';
+        execute(selected.id, keepOpen);
+      }
     } else if (e.key === 'Escape') {
       e.preventDefault();
       hide();
@@ -97,12 +121,22 @@
   resultsContainer.addEventListener('click', e => {
     const item = e.target.closest('.result-item');
     if (item) {
-      const id = item.getAttribute('data-id');
-      const result = results.find(r => r.id === id);
-      if (result) console.log('Clicked:', result);
+      execute(item.dataset.id);
+    }
+  });
+
+  resultsContainer.addEventListener('mousemove', e => {
+    const item = e.target.closest('.result-item');
+    if (item) {
+      const idx = results.findIndex(r => r.id === item.dataset.id);
+      if (idx !== -1 && idx !== activeIndex) {
+        activeIndex = idx;
+        renderResults();
+      }
     }
   });
 
   // initial load
+  input.focus();
   doSearch('');
 })();

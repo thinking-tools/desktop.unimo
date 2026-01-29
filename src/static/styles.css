@@ -86,7 +86,7 @@ form {
 /* Results area */
 .results {
   -webkit-app-region: no-drag;
-  flex: 1;
+  /* flex: 1; */
   margin-top: 8px;
   background: rgba(30, 30, 32, 0.95);
   backdrop-filter: blur(20px);

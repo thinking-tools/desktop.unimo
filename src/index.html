@@ -5,17 +5,9 @@
   <head>
     <meta charset="UTF-8" />
     <title>unimo</title>
-    <!-- Production: strict -->
-    <meta
-      id="csp"
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:"
-    />
-
-    <!-- Development: allows devtools, hot reload, etc -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
+      content="default-src 'self'; img-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'"
     />
 
     <link rel="stylesheet" href="static/styles.css" />

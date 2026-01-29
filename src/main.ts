@@ -1,6 +1,8 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, Tray, Menu, screen } from 'electron';
 import { join } from 'path';
-import { search } from './search';
+import { localEngine } from './search-engine';
+import { execute, registerCallback } from './actions';
+import { loadIcon } from './providers/apps';
 
 let tray: Tray | null = null;
 let win: BrowserWindow | null = null;
@@ -77,6 +79,14 @@ const toggleWindow = () => {
   }
 };
 
+registerCallback('app:quit', () => app.quit());
+registerCallback('window:reload', () => win?.reload());
+registerCallback('devtools:toggle', () => win?.webContents.toggleDevTools());
+registerCallback('settings:open', () => {
+  // TODO: implement settings window
+  console.log('Settings requested');
+});
+
 app.whenReady().then(() => {
   tray = new Tray(icon);
   const contextMenu = Menu.buildFromTemplate([
@@ -87,7 +97,20 @@ app.whenReady().then(() => {
 
   ipcMain.handle('env:is-dev', () => isDev);
   ipcMain.handle('perf:get-start-time', () => mainStartTime);
-  ipcMain.handle('search:query', (_event, query: string) => search(query));
+  ipcMain.handle('search:query', (_e, query: string) => localEngine.search(query));
+  ipcMain.handle('search:web', (_e, query: string) => console.warn(query));
+  ipcMain.handle('search:history', (_e, _query: string) => []); // TODO: implement
+  ipcMain.handle('apps:icon', (_e, id: string) => loadIcon(id));
+  ipcMain.handle('chat:ask', (_e, _msg: string, _opts: unknown) => ({ id: '', response: '' }));
+  ipcMain.handle('chat:ephemeral', (_e, _msg: string, _opts: unknown) => ({ response: '' }));
+  ipcMain.handle('chat:reply', (_e, _id: string, _msg: string) => ({ response: '' }));
+  ipcMain.handle('chat:remove-chat', (_e, _id: string) => true);
+  ipcMain.handle('chat:get-history', () => []);
+  ipcMain.handle('chat:clear-history', () => true);
+
+  // Execute
+  ipcMain.handle('execute:command', (_e, id: string) => execute(id));
+
   ipcMain.handle('window:hide', () => {
     win?.hide();
   });
