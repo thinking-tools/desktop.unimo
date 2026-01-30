@@ -1,5 +1,6 @@
 // search-engine.ts
 import { SearchProvider, SearchResult } from './search-results.ts';
+import { refreshApps } from './providers/apps.ts';
 
 class LocalSearchEngine {
   private providers: SearchProvider[] = [];
@@ -24,6 +25,10 @@ class LocalSearchEngine {
       .flat()
       .sort((a, b) => b.score - a.score)
       .slice(0, 12);
+  }
+
+  async buildIndexes() {
+    refreshApps();
   }
 }
 

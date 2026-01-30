@@ -10,11 +10,16 @@
     "test": "npm run build:main && playwright test",
     "lint": "prettier --check 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
     "format": "prettier --write 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
+    "app:mac": "npm run build:main && electron-builder --mac",
+    "app:win": "npm run build:main && electron-builder --win",
+    "app:linux": "npm run build:main && electron-builder --linux",
+    "app:all": "npm run build:main && electron-builder --mac --win --linux",
     "prepare": "husky"
   },
   "devDependencies": {
     "@playwright/test": "1.58.0",
     "electron": "40.1.0",
+    "electron-builder": "26.6.0",
     "esbuild": "0.27.2",
     "husky": "9.1.7",
     "playwright": "1.58.0",
@@ -34,5 +39,45 @@
   },
   "dependencies": {
     "get-installed-apps": "^1.1.1"
+  },
+  "author": "thinking.tools",
+  "email": "contact@thinking.tools",
+  "url": "https://github.com/thinking-tools/desktop.unimo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thinking-tools/desktop.unimo.git",
+    "issues": "https://github.com/thinking-tools/desktop.unimo/issues"
+  },
+  "build": {
+    "appId": "app.unimo.desktop",
+    "productName": "unimo",
+    "files": [
+      "dist/**/*",
+      "assets/**/*",
+      "node_modules/get-installed-apps/build/Release/get_installed_apps.node"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Productivity"
+    }
   }
 }

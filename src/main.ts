@@ -41,12 +41,11 @@ const createWindow = () => {
     movable: true,
     resizable: true,
     hasShadow: false,
-
     webPreferences: {
       contextIsolation: true,
       webSecurity: true,
       allowRunningInsecureContent: false,
-      preload: join(__dirname, '../src/preload.js'),
+      preload: join(__dirname, '..', 'src', 'preload.js'),
     },
   });
 
@@ -55,9 +54,7 @@ const createWindow = () => {
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   }
 
-  win.loadFile('src/index.html');
-
-  browserManager.attach(win);
+  win.loadFile(join(__dirname, '..', 'src', 'index.html'));
 
   if (isDev) {
     win.webContents.openDevTools({ mode: 'detach' });
@@ -75,6 +72,8 @@ const createWindow = () => {
   win.once('ready-to-show', () => {
     win?.show();
     win?.focus();
+    if (win) browserManager.attach(win);
+    localEngine.buildIndexes();
   });
 
   return win;

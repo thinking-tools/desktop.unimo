@@ -228,8 +228,6 @@ const buildIndex = async (): Promise<void> => {
   }
 };
 
-buildIndex();
-
 export const appsProvider: SearchProvider = {
   name: 'apps',
   priority: 100,
