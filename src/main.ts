@@ -45,7 +45,7 @@ const createWindow = () => {
       contextIsolation: true,
       webSecurity: true,
       allowRunningInsecureContent: false,
-      preload: join(__dirname, '..', 'src', 'preload.js'),
+      preload: join(__dirname, 'preload.js'),
     },
   });
 
@@ -54,7 +54,7 @@ const createWindow = () => {
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   }
 
-  win.loadFile(join(__dirname, '..', 'src', 'index.html'));
+  win.loadFile(join(__dirname, 'index.html'));
 
   if (isDev) {
     win.webContents.openDevTools({ mode: 'detach' });
