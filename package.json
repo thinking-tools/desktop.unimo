@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build && NODE_ENV=development electron .",
-    "start": "npm run build:main && NODE_ENV=production electron .",
-    "test": "npm run build:main && playwright test",
+    "start": "npm run build && NODE_ENV=production electron .",
+    "test": "npm run build && playwright test",
     "lint": "prettier --check 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
     "format": "prettier --write 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
     "build:main": "esbuild src/main.ts --bundle --platform=node --external:electron --format=cjs --outfile=dist/main.cjs",
