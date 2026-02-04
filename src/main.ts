@@ -3,10 +3,11 @@ import { join } from 'path';
 import { localEngine } from './search-engine';
 import { execute, registerCallback } from './actions';
 import { loadIcon } from './providers/apps';
-import { browserManager } from './browser/browser-manager';
+import { WebSearch } from './browser/websearch';
 
 let tray: Tray | null = null;
 let win: BrowserWindow | null = null;
+let webSearch: WebSearch | null = null;
 
 const icon = nativeImage.createFromDataURL(
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACTSURBVHgBpZKBCYAgEEV/TeAIjuIIbdQIuUGt0CS1gW1iZ2jIVaTnhw+Cvs8/OYDJA4Y8kR3ZR2/kmazxJbpUEfQ/Dm/UG7wVwHkjlQdMFfDdJMFaACebnjJGyDWgcnZu1/lrCrl6NCoEHJBrDwEr5NrT6ko/UV8xdLAC2N49mlc5CylpYh8wCwqrvbBGLoKGvz8Bfq0QPWEUo/EAAAAASUVORK5CYII=',
@@ -65,14 +66,13 @@ const createWindow = () => {
   });
 
   win.on('closed', () => {
-    browserManager.detach();
     win = null;
   });
 
   win.once('ready-to-show', () => {
     win?.show();
     win?.focus();
-    if (win) browserManager.attach(win);
+    webSearch = new WebSearch(process.env.KAGI_API_KEY || '');
     localEngine.buildIndexes();
   });
 
@@ -140,7 +140,8 @@ if (!gotLock) {
         case 'note': {
         }
         case 'web': {
-          browserManager.createSearchTab(query, false);
+          // browserManager.createSearchTab(query, false);
+          return webSearch?.search(query);
         }
         case 'chat': {
         }
