@@ -46,6 +46,11 @@ export const execute = async (id: string): Promise<boolean> => {
         exec(cmd, (err, stdout, stderr) => {
           if (err) console.error('[execute] exec error:', err, stderr);
         });
+      } else if (process.platform === 'linux') {
+        // Linux: execute the command directly (from .desktop Exec field)
+        exec(action.payload, (err, stdout, stderr) => {
+          if (err) console.error('[execute] Linux exec error:', err, stderr);
+        });
       } else {
         await shell.openPath(action.payload);
       }

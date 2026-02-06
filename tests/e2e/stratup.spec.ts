@@ -1,11 +1,15 @@
 // tests/e2e/startup.spec.ts
 import { test, expect, _electron as electron, ElectronApplication } from '@playwright/test';
+import { platform } from 'os';
 
 const PERF_BUDGET = {
   FIRST_PAINT_MS: 500,
   INTERACTIVE_MS: 800,
   WINDOW_TOGGLE_MS: 50,
 } as const;
+
+// Linux needs --no-sandbox unless chrome-sandbox has SUID bit set
+const electronArgs = platform() === 'linux' ? ['.', '--no-sandbox'] : ['.'];
 
 let app: ElectronApplication;
 
@@ -16,7 +20,7 @@ test.afterEach(async () => {
 // Run first to warm OS caches (electron binary, shared libs, etc.)
 test.describe.serial('Performance', () => {
   test('warmup + window toggle', async () => {
-    app = await electron.launch({ args: ['.'] });
+    app = await electron.launch({ args: electronArgs });
     const window = await app.firstWindow();
     await window.waitForSelector('[data-ready="true"]', { timeout: 5000 });
 
@@ -38,7 +42,7 @@ test.describe.serial('Performance', () => {
   });
 
   test(`app startup < ${PERF_BUDGET.INTERACTIVE_MS}ms (warm boot)`, async () => {
-    app = await electron.launch({ args: ['.'] });
+    app = await electron.launch({ args: electronArgs });
     const window = await app.firstWindow();
 
     await window.waitForSelector('[data-ready="true"]', { timeout: 3000 });
