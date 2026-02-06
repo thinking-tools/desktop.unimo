@@ -4,7 +4,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   search: {
     query: query => ipcRenderer.invoke('search:query', query),
     web: query => ipcRenderer.invoke('search:web', query),
-    history: query => ipcRenderer.invoke('search:history', query),
   },
   apps: {
     getIcon: id => ipcRenderer.invoke('apps:icon', id),
@@ -23,12 +22,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   window: {
     hide: () => ipcRenderer.invoke('window:hide'),
-    show: () => ipcRenderer.invoke('window:show'),
+    show: () => ipcRenderer.invoke('window:show:search'),
     close: () => ipcRenderer.invoke('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
 
     setIgnoreMouse: ignore => ipcRenderer.invoke('window:set-ignore-mouse', ignore),
-    onShow: callback => ipcRenderer.on('window:show', callback),
+    onShowSearch: callback => ipcRenderer.on('window:show:search', callback),
+    onShowWeb: callback => ipcRenderer.on('window:show:web', callback),
   },
   perf: {
     getStartTime: () => ipcRenderer.invoke('perf:get-start-time'),

@@ -85,3 +85,5 @@ export class WebSearch {
     return related?.list ?? [];
   }
 }
+
+export const websearch = new WebSearch(process.env.KAGI_API_KEY || '');

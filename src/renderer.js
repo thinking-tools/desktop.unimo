@@ -4,49 +4,22 @@
     document.documentElement.classList.add('dev-mode');
     console.log('Running in development mode');
   }
-  const initVelocityCaret = (inputEl, caretEl, selEl, measurerEl, padding = 20) => {
+  const initVelocityCaret = (inputEl, textBeforeCaret, caretEl) => {
     const BASE_TRAIL = 0.15,
       CHAR_FACTOR = 0.06,
       VELOCITY_FACTOR = 0.4,
       MAX_TRAIL = 0.4;
     let lastKeystroke = 0,
-      lastCaretX = padding,
       lastLength = 0,
-      hadSelection = false;
+      lastCaretPos = 0,
+      selActive = false;
     let blinkTimer, fadeTimer;
 
-    const measure = t => ((measurerEl.textContent = t || ''), measurerEl.offsetWidth);
-    const caretX = () => padding + measure(inputEl.value.slice(0, inputEl.selectionStart));
-
-    const updateCaret = () => {
-      const x = caretX();
-      caretEl.style.transform = `translate3d(${x}px, -50%, 0)`;
-      lastCaretX = x;
+    const sync = () => {
+      textBeforeCaret.textContent = inputEl.value.slice(0, inputEl.selectionStart);
     };
 
-    const updateSelection = () => {
-      const { selectionStart: s, selectionEnd: e, value } = inputEl;
-      const hasSel = s !== e;
-      if (!hasSel) {
-        if (hadSelection) {
-          selEl.classList.remove('visible');
-          selEl.classList.add('hiding');
-          setTimeout(() => selEl.classList.remove('hiding'), 120);
-        }
-        hadSelection = false;
-        return false;
-      }
-      const x = padding + measure(value.slice(0, s));
-      const w = measure(value.slice(s, e));
-      selEl.style.setProperty('--sel-x', `${x}px`);
-      selEl.style.width = `${w}px`;
-      selEl.classList.remove('hiding');
-      selEl.classList.add('visible');
-      hadSelection = true;
-      return true;
-    };
-
-    const triggerVelocity = (charDelta, direction) => {
+    const triggerVelocity = (charDelta, dir) => {
       const now = performance.now();
       const dt = now - lastKeystroke;
       lastKeystroke = now;
@@ -60,8 +33,8 @@
       const scale = Math.min(MAX_TRAIL, BASE_TRAIL + charContrib + velocityBonus);
       caretEl.style.setProperty('--trail-scale', scale.toFixed(3));
 
-      if (direction < 0) caretEl.classList.add('reverse');
-      caretEl.offsetHeight; // reflow
+      if (dir < 0) caretEl.classList.add('reverse');
+      caretEl.offsetHeight;
       caretEl.classList.add('velocity');
 
       fadeTimer = setTimeout(() => {
@@ -75,17 +48,21 @@
       }, 450);
     };
 
-    const show = () => {
-      caretEl.classList.add('visible');
-      updateCaret();
-      updateSelection();
+    const resetBlink = () => {
+      caretEl.classList.remove('blinking', 'velocity', 'fading', 'reverse');
       clearTimeout(blinkTimer);
+      clearTimeout(fadeTimer);
       blinkTimer = setTimeout(() => caretEl.classList.add('blinking'), 450);
+    };
+
+    const show = () => {
+      sync();
+      caretEl.classList.add('visible');
+      resetBlink();
     };
 
     const hide = () => {
       caretEl.classList.remove('visible', 'blinking', 'velocity', 'fading', 'reverse');
-      selEl.classList.remove('visible', 'hiding');
       clearTimeout(blinkTimer);
       clearTimeout(fadeTimer);
     };
@@ -93,95 +70,104 @@
     inputEl.addEventListener('focus', show);
     inputEl.addEventListener('blur', hide);
 
-    inputEl.addEventListener('input', () => {
-      const len = inputEl.value.length;
-      const x = caretX();
-      const charDelta = len - lastLength;
-      const dir = x - lastCaretX;
-      const wasSelectionDelete = hadSelection && charDelta < 0;
-      lastLength = len;
-      updateCaret();
-      updateSelection();
-      triggerVelocity(wasSelectionDelete ? charDelta * 1.5 : charDelta, dir);
-    });
-
     inputEl.addEventListener('keydown', e => {
+      selActive = inputEl.selectionStart !== inputEl.selectionEnd;
       if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
         requestAnimationFrame(() => {
-          updateCaret();
-          updateSelection();
+          const pos = inputEl.selectionStart;
+          const dir = pos - lastCaretPos;
+          lastCaretPos = pos;
+          sync();
+          dir !== 0 ? triggerVelocity(0, dir) : resetBlink();
         });
       }
     });
 
-    inputEl.addEventListener('click', () => {
-      updateCaret();
-      updateSelection();
+    inputEl.addEventListener('input', () => {
+      const len = inputEl.value.length;
+      const pos = inputEl.selectionStart;
+      const charDelta = len - lastLength;
+      const dir = pos - lastCaretPos;
+      lastLength = len;
+      lastCaretPos = pos;
+      sync();
+      triggerVelocity(selActive && charDelta < 0 ? charDelta * 1.5 : charDelta, dir);
+      selActive = false;
     });
+
+    inputEl.addEventListener('click', () => {
+      lastCaretPos = inputEl.selectionStart;
+      sync();
+      resetBlink();
+    });
+
     document.addEventListener('selectionchange', () => {
       if (document.activeElement === inputEl) {
-        updateCaret();
-        updateSelection();
+        lastCaretPos = inputEl.selectionStart;
+        sync();
       }
     });
 
     lastLength = inputEl.value.length;
+    lastCaretPos = inputEl.selectionStart;
     if (document.activeElement === inputEl) show();
-
-    return { show, hide, update: updateCaret };
   };
+
+  const textBefore = document.getElementById('text-before-caret');
+
+  const caret = document.getElementById('caret');
+  const selection = document.getElementById('selection');
+  const measurer = document.getElementById('measurer');
+
+  const tags = Object.freeze({ search: 'search', web: 'web', ai: 'ai', notes: 'notes' });
+  let activeTag = tags.search;
 
   const input = document.getElementById('search-input');
   const resultsContainer = document.querySelector('.results');
   const searchBox = document.querySelector('.search-box');
   const el = document.getElementById('app');
   const actionButtons = document.querySelector('.action-buttons');
-  const caret = document.getElementById('caret');
-  const selection = document.getElementById('selection');
-  const measurer = document.getElementById('measurer');
-  const velocityCaret = initVelocityCaret(input, caret, selection, measurer, 20);
+
+  initVelocityCaret(input, textBefore, caret);
 
   const updateActionButtons = query => {
     actionButtons.hidden = query.trim().length <= 1;
   };
 
   // Track state to avoid redundant IPC and detect desync
-  let ignoreMouseState = true;
-  const setClickThrough = ignore => {
-    if (ignore === ignoreMouseState) return;
-    ignoreMouseState = ignore;
-    window.electronAPI.window.setIgnoreMouse(ignore);
-  };
+  // let ignoreMouseState = true;
+  // const setClickThrough = ignore => {
+  //   if (ignore === ignoreMouseState) return;
+  //   ignoreMouseState = ignore;
+  //   window.electronAPI.window.setIgnoreMouse(ignore);
+  // };
 
   // Use a single interactive zone - wrap searchBox + results in one container
   // or track hover count for overlapping regions
-  let hoverCount = 0;
-  const onEnterInteractive = () => {
-    hoverCount++;
-    setClickThrough(false);
-  };
-  const onLeaveInteractive = () => {
-    hoverCount--;
-    if (hoverCount <= 0) {
-      hoverCount = 0;
-      setClickThrough(true);
-    }
-  };
+  // let hoverCount = 0;
+  // const onEnterInteractive = () => {
+  //   hoverCount++;
+  //   setClickThrough(false);
+  // };
+  // const onLeaveInteractive = () => {
+  //   hoverCount--;
+  //   if (hoverCount <= 0) {
+  //     hoverCount = 0;
+  //     setClickThrough(true);
+  //   }
+  // };
 
-  setClickThrough(true);
-  [searchBox, resultsContainer].forEach(target => {
-    target.addEventListener('mouseenter', onEnterInteractive);
-    target.addEventListener('mouseleave', onLeaveInteractive);
-  });
+  // setClickThrough(true);
+  // [searchBox, resultsContainer].forEach(target => {
+  //   target.addEventListener('mouseenter', onEnterInteractive);
+  //   target.addEventListener('mouseleave', onLeaveInteractive);
+  // });
 
   let activeIndex = 0;
   let results = [];
   let debounceTimer = null;
 
   const hide = () => {
-    // Reset state before hiding
-    hoverCount = 0;
-    setClickThrough(true);
     window.electronAPI.window.hide();
   };
 
@@ -302,15 +288,16 @@
     }
   });
 
-  window.electronAPI.window.onShow(() => {
-    hoverCount = 0;
-    setClickThrough(true);
+  window.electronAPI.window.onShowSearch(() => {
     input.focus();
+    activeTag = tags.search;
+    doSearch('');
   });
 
-  requestAnimationFrame(() => {
-    hoverCount = 0;
-    setClickThrough(true);
+  window.electronAPI.window.onShowWeb(() => {
+    input.focus();
+    activeTag = tags.web;
+    doSearch('');
   });
 
   input.focus();

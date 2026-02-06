@@ -15,26 +15,17 @@
   <body>
     <div id="app" data-ready="false" data-startup-ms="">
       <div class="search-box">
-        <form>
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Search, talk or note ..."
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-            autofocus
-          />
-        </form>
-        <div class="selection-highlight" id="selection"></div>
-        <div class="caret" id="caret"></div>
+        <div class="input-mirror" aria-hidden="true">
+          <span id="text-before-caret"></span><span class="caret" id="caret"></span>
+        </div>
+        <input id="search-input" type="text" placeholder="Search, talk or note..." />
       </div>
       <span class="text-measurer" id="measurer"></span>
       <div class="action-buttons" hidden>
-        <button type="button" data-action="note">Add note</button>
-        <button type="button" data-action="web">Search web</button>
-        <button type="button" data-action="chat">AI chat</button>
+        <button type="button" class="active" data-action="search">All</button>
+        <button type="button" data-action="web">Web</button>
+        <button type="button" data-action="ai">Sqip</button>
+        <button type="button" data-action="notes">Notes</button>
       </div>
       <div class="results">
         <!-- Example items -->

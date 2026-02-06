@@ -1,13 +1,24 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, Tray, Menu, screen } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, Tray, Menu, screen, nativeTheme } from 'electron';
 import { join } from 'path';
+import liquidGlass, { GlassOptions } from 'electron-liquid-glass';
 import { localEngine } from './search-engine';
 import { execute, registerCallback } from './actions';
 import { loadIcon } from './providers/apps';
-import { WebSearch } from './browser/websearch';
+import { websearch } from './browser/websearch';
+
+const PANEL_WIDTH = 560;
+const PANEL_MAX_HEIGHT = 480;
+const EDGE_PAD = 16;
+const TOP_PAD = 12;
+
+const liquidOptions: GlassOptions = {
+  cornerRadius: 16, // (optional)
+  tintColor: '#FF000050', // black tint (optional)
+  opaque: false, // add opaque background behind glass (optional)
+};
 
 let tray: Tray | null = null;
 let win: BrowserWindow | null = null;
-let webSearch: WebSearch | null = null;
 
 const icon = nativeImage.createFromDataURL(
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACTSURBVHgBpZKBCYAgEEV/TeAIjuIIbdQIuUGt0CS1gW1iZ2jIVaTnhw+Cvs8/OYDJA4Y8kR3ZR2/kmazxJbpUEfQ/Dm/UG7wVwHkjlQdMFfDdJMFaACebnjJGyDWgcnZu1/lrCrl6NCoEHJBrDwEr5NrT6ko/UV8xdLAC2N49mlc5CylpYh8wCwqrvbBGLoKGvz8Bfq0QPWEUo/EAAAAASUVORK5CYII=',
@@ -26,22 +37,27 @@ const createWindow = () => {
   }
 
   const cursor = screen.getCursorScreenPoint();
-  const currentDisplay = screen.getDisplayNearestPoint(cursor);
-  const { x, y, width, height } = currentDisplay.workArea;
+  const display = screen.getDisplayNearestPoint(cursor);
+  const { x, y, width } = display.workArea;
 
   win = new BrowserWindow({
-    width,
-    height,
-    x,
-    y,
+    width: PANEL_WIDTH,
+    height: PANEL_MAX_HEIGHT,
+    x: x + width - PANEL_WIDTH - EDGE_PAD,
+    y: y + TOP_PAD,
     show: false,
     frame: false,
+
     transparent: true,
+    backgroundColor: '#00000000',
+    vibrancy: 'fullscreen-ui',
+
     alwaysOnTop: true,
-    skipTaskbar: false,
-    movable: true,
-    resizable: true,
-    hasShadow: false,
+    skipTaskbar: true,
+    movable: false,
+    resizable: false,
+    hasShadow: true,
+    roundedCorners: true,
     webPreferences: {
       contextIsolation: true,
       webSecurity: true,
@@ -61,6 +77,13 @@ const createWindow = () => {
     win.webContents.openDevTools({ mode: 'detach' });
   }
 
+  // win.webContents.once('did-finish-load', () => {
+  //   // 🪄 Apply effect, get handle
+  //   console.log('Applying liquid glass effect with options:', liquidOptions);
+  //   const glassId = liquidGlass.addView(win?.getNativeWindowHandle() as Buffer, liquidOptions);
+  //   liquidGlass.unstable_setVariant(glassId, 2);
+  // });
+
   win.on('blur', () => {
     win?.hide();
   });
@@ -72,30 +95,29 @@ const createWindow = () => {
   win.once('ready-to-show', () => {
     win?.show();
     win?.focus();
-    webSearch = new WebSearch(process.env.KAGI_API_KEY || '');
     localEngine.buildIndexes();
   });
 
   return win;
 };
 
-const toggleWindow = () => {
+const toggleWindow = (action = 'search') => {
   if (!win || win.isDestroyed()) {
     createWindow();
-  } else if (win.isVisible()) {
-    win.hide();
-  } else {
-    const cursor = screen.getCursorScreenPoint();
-    const currentDisplay = screen.getDisplayNearestPoint(cursor);
-    const { x, y, width, height } = currentDisplay.workArea;
-
-    // Set position with animate=false, then size, then show
-    win.setPosition(x, y, false);
-    win.setSize(width, height, false);
-    win.show();
-    win.webContents.send('window:show');
-    win.focus();
+    return;
   }
+  if (win.isVisible()) {
+    win.hide();
+    return;
+  }
+  const cursor = screen.getCursorScreenPoint();
+  const display = screen.getDisplayNearestPoint(cursor);
+  const { x, y, width } = display.workArea;
+
+  win.setPosition(x + width - PANEL_WIDTH - EDGE_PAD, y + TOP_PAD, false);
+  win.show();
+  win.webContents.send(action === 'web' ? 'window:show:web' : 'window:show:search');
+  win.focus();
 };
 
 if (!gotLock) {
@@ -115,7 +137,7 @@ if (!gotLock) {
   app.whenReady().then(() => {
     tray = new Tray(icon);
     const contextMenu = Menu.buildFromTemplate([
-      { label: 'Show/Hide', click: toggleWindow },
+      { label: 'Show/Hide', click: () => toggleWindow() },
       { label: 'Quit', role: 'quit' },
     ]);
     tray.setContextMenu(contextMenu);
@@ -123,8 +145,7 @@ if (!gotLock) {
     ipcMain.handle('env:is-dev', () => isDev);
     ipcMain.handle('perf:get-start-time', () => mainStartTime);
     ipcMain.handle('search:query', (_e, query: string) => localEngine.search(query));
-    // ipcMain.handle('search:web', (_e, query: string) => browserManager.createTab(query));
-    ipcMain.handle('search:history', (_e, _query: string) => []); // TODO: implement
+    ipcMain.handle('search:web', (_e, query: string) => websearch?.search(query));
     ipcMain.handle('apps:icon', (_e, id: string) => loadIcon(id));
     ipcMain.handle('chat:ask', (_e, _msg: string, _opts: unknown) => ({ id: '', response: '' }));
     ipcMain.handle('chat:ephemeral', (_e, _msg: string, _opts: unknown) => ({ response: '' }));
@@ -141,7 +162,7 @@ if (!gotLock) {
         }
         case 'web': {
           // browserManager.createSearchTab(query, false);
-          return webSearch?.search(query);
+          return websearch?.search(query);
         }
         case 'chat': {
         }
@@ -156,7 +177,8 @@ if (!gotLock) {
       win?.hide();
     });
 
-    globalShortcut.register('CommandOrControl+Space', toggleWindow);
+    globalShortcut.register('CommandOrControl+Space', () => toggleWindow('search'));
+    globalShortcut.register('CommandOrControl+T', () => toggleWindow('web'));
 
     createWindow();
   });
