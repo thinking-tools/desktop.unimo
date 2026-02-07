@@ -9,7 +9,7 @@
     "test": "npm run build && playwright test",
     "lint": "prettier --check 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
     "format": "prettier --write 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
-    "build:main": "esbuild src/main.ts --bundle --platform=node --external:electron --external:electron-liquid-glass --format=cjs --outfile=dist/main.cjs",
+    "build:main": "esbuild src/main.ts --bundle --platform=node --external:electron --format=cjs --outfile=dist/main.cjs",
     "build:ui": "cp src/index.html src/renderer.js src/preload.js dist/ && cp -r src/static dist/",
     "build": "npm run build:main && npm run build:ui",
     "app:mac": "npm run build && electron-builder --mac",
@@ -19,12 +19,12 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@playwright/test": "1.58.1",
+    "@playwright/test": "1.58.2",
     "electron": "40.2.1",
     "electron-builder": "26.7.0",
     "esbuild": "0.27.3",
     "husky": "9.1.7",
-    "playwright": "1.58.1",
+    "playwright": "1.58.2",
     "prettier": "3.8.1",
     "tsx": "4.21.0"
   },
@@ -40,7 +40,6 @@
     "printWidth": 120
   },
   "dependencies": {
-    "electron-liquid-glass": "1.1.1",
     "get-installed-apps": "1.1.1"
   },
   "author": "thinking.tools",

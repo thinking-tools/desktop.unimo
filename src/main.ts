@@ -1,6 +1,6 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, Tray, Menu, screen, nativeTheme } from 'electron';
 import { join } from 'path';
-import liquidGlass, { GlassOptions } from 'electron-liquid-glass';
+// import liquidGlass, { GlassOptions } from 'electron-liquid-glass';
 import { localEngine } from './search-engine';
 import { execute, registerCallback } from './actions';
 import { loadIcon } from './providers/apps';
@@ -11,11 +11,11 @@ const PANEL_MAX_HEIGHT = 480;
 const EDGE_PAD = 16;
 const TOP_PAD = 12;
 
-const liquidOptions: GlassOptions = {
-  cornerRadius: 16, // (optional)
-  tintColor: '#FF000050', // black tint (optional)
-  opaque: false, // add opaque background behind glass (optional)
-};
+// const liquidOptions: GlassOptions = {
+//   cornerRadius: 16, // (optional)
+//   tintColor: '#FF000050', // black tint (optional)
+//   opaque: false, // add opaque background behind glass (optional)
+// };
 
 let tray: Tray | null = null;
 let win: BrowserWindow | null = null;
