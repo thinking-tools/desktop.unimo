@@ -134,35 +134,6 @@
     actionButtons.hidden = query.trim().length <= 0;
   };
 
-  // Track state to avoid redundant IPC and detect desync
-  // let ignoreMouseState = true;
-  // const setClickThrough = ignore => {
-  //   if (ignore === ignoreMouseState) return;
-  //   ignoreMouseState = ignore;
-  //   window.electronAPI.window.setIgnoreMouse(ignore);
-  // };
-
-  // Use a single interactive zone - wrap searchBox + results in one container
-  // or track hover count for overlapping regions
-  // let hoverCount = 0;
-  // const onEnterInteractive = () => {
-  //   hoverCount++;
-  //   setClickThrough(false);
-  // };
-  // const onLeaveInteractive = () => {
-  //   hoverCount--;
-  //   if (hoverCount <= 0) {
-  //     hoverCount = 0;
-  //     setClickThrough(true);
-  //   }
-  // };
-
-  // setClickThrough(true);
-  // [searchBox, resultsContainer].forEach(target => {
-  //   target.addEventListener('mouseenter', onEnterInteractive);
-  //   target.addEventListener('mouseleave', onLeaveInteractive);
-  // });
-
   let activeIndex = 0;
   let results = [];
   let debounceTimer = null;
