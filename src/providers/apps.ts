@@ -2,9 +2,9 @@
 import { SearchProvider, SearchResult } from '../search-results';
 import { registerBatch } from '../actions';
 import { getInstalledApps } from 'get-installed-apps';
-import { app, nativeImage } from 'electron';
+import { app } from 'electron';
 import { existsSync, readFileSync, readdirSync } from 'fs';
-import { join, basename } from 'path';
+import { join } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { tmpdir, homedir } from 'os';
@@ -271,7 +271,59 @@ const preloadIcons = async () => {
   console.log(`[apps] Preloaded ${iconCache.size} icons`);
 };
 
+// macOS: use mdfind (Spotlight) to enumerate .app bundles from user-facing directories
+const getInstalledAppsMac = async (): Promise<any[]> => {
+  try {
+    const home = homedir();
+    const { stdout } = await execAsync(`mdfind 'kMDItemContentType == "com.apple.application-bundle"' 2>/dev/null`, {
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    // Only include apps from directories a user would actually launch from
+    const allowedRoots = [
+      '/Applications/',
+      '/System/Applications/',
+      `${home}/Applications/`,
+      '/System/Library/CoreServices/Applications/', // Keychain Access, Directory Utility, etc.
+    ];
+
+    const paths = stdout
+      .split('\n')
+      .map(p => p.trim())
+      .filter(p => {
+        if (!p.endsWith('.app')) return false;
+        // Exclude nested .app bundles (e.g. Xcode.app/Contents/.../Simulator.app)
+        if (p.indexOf('.app/') !== -1) return false;
+        return allowedRoots.some(root => p.startsWith(root));
+      });
+
+    const seen = new Set<string>();
+    const apps: any[] = [];
+
+    for (const fullPath of paths) {
+      if (!existsSync(fullPath)) continue; // stale Spotlight entry
+      const name = fullPath
+        .split('/')
+        .pop()!
+        .replace(/\.app$/, '');
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      apps.push({
+        appName: name,
+        appIdentifier: name.replace(/\s+/g, '-').toLowerCase(),
+        _resolvedPath: fullPath,
+      });
+    }
+    return apps;
+  } catch {
+    return [];
+  }
+};
+
 const resolveMacAppPath = (appData: any): string | null => {
+  if (appData._resolvedPath) return appData._resolvedPath;
+
   const appFileName = appData.kMDItemFSName || appData._kMDItemDisplayNameWithExtensions;
   if (!appFileName) return null;
 
@@ -319,7 +371,10 @@ const resolvePath = (appData: any): string | null => {
 
 const buildIndex = async (): Promise<void> => {
   try {
-    const apps = isLinux ? getInstalledAppsLinux() : ((await getInstalledApps()) as any[]);
+    let apps: any[];
+    if (isLinux) apps = getInstalledAppsLinux();
+    else if (isMac) apps = await getInstalledAppsMac();
+    else apps = (await getInstalledApps()) as any[];
     const seen = new Set<string>();
 
     cache = apps

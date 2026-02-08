@@ -131,7 +131,7 @@
   initVelocityCaret(input, textBefore, caret);
 
   const updateActionButtons = query => {
-    actionButtons.hidden = query.trim().length <= 1;
+    actionButtons.hidden = query.trim().length <= 0;
   };
 
   // Track state to avoid redundant IPC and detect desync
