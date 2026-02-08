@@ -87,12 +87,17 @@ test.describe('App search', () => {
         if (titles.some(t => t.toLowerCase().includes(appName.toLowerCase()))) {
           available.push(appName);
         }
-      } catch { /* app not indexed on this runner */ }
+      } catch {
+        /* app not indexed on this runner */
+      }
       await input.fill('');
     }
 
     console.log(`  Available apps: ${available.join(', ')} (${available.length}/${candidates.length})`);
-    expect(available.length, `Expected at least ${MIN_EXPECTED_APPS} of [${candidates.join(', ')}]`).toBeGreaterThanOrEqual(MIN_EXPECTED_APPS);
+    expect(
+      available.length,
+      `Expected at least ${MIN_EXPECTED_APPS} of [${candidates.join(', ')}]`,
+    ).toBeGreaterThanOrEqual(MIN_EXPECTED_APPS);
 
     // Warm up discovered apps
     for (const appName of available) {
