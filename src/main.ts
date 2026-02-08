@@ -1,6 +1,5 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, Tray, Menu, screen, nativeTheme } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, Tray, Menu, screen } from 'electron';
 import { join } from 'path';
-// import liquidGlass, { GlassOptions } from 'electron-liquid-glass';
 import { localEngine } from './search-engine';
 import { execute, registerCallback } from './actions';
 import { loadIcon } from './providers/apps';
@@ -10,12 +9,6 @@ const PANEL_WIDTH = 560;
 const PANEL_MAX_HEIGHT = 480;
 const EDGE_PAD = 16;
 const TOP_PAD = 12;
-
-// const liquidOptions: GlassOptions = {
-//   cornerRadius: 16, // (optional)
-//   tintColor: '#FF000050', // black tint (optional)
-//   opaque: false, // add opaque background behind glass (optional)
-// };
 
 let tray: Tray | null = null;
 let win: BrowserWindow | null = null;
@@ -76,13 +69,6 @@ const createWindow = () => {
   if (isDev) {
     win.webContents.openDevTools({ mode: 'detach' });
   }
-
-  // win.webContents.once('did-finish-load', () => {
-  //   // 🪄 Apply effect, get handle
-  //   console.log('Applying liquid glass effect with options:', liquidOptions);
-  //   const glassId = liquidGlass.addView(win?.getNativeWindowHandle() as Buffer, liquidOptions);
-  //   liquidGlass.unstable_setVariant(glassId, 2);
-  // });
 
   win.on('blur', () => {
     win?.hide();
