@@ -23,7 +23,7 @@ body {
   color-scheme: light dark;
 
   /* Light mode defaults */
-  --surface: rgba(255, 255, 255, 0.45);
+  --surface: rgba(255, 255, 255, 0.583);
   --surface-hover: rgba(255, 255, 255, 0.55);
   --surface-result: rgba(255, 255, 255, 0.35);
   --surface-active: rgba(99, 102, 241, 0.12);
@@ -120,12 +120,12 @@ body[data-platform='linux'] {
 }
 
 body[data-platform='darwin'] {
-  background: rgba(245, 245, 247, 0.7);
+  background: transparent;
 }
 
 @media (prefers-color-scheme: dark) {
   body[data-platform='darwin'] {
-    background: rgba(30, 30, 32, 0.7);
+    background: transparent;
   }
 }
 
@@ -142,15 +142,15 @@ body[data-platform='darwin'] {
 /* ── Search container — thin tint over native vibrancy ── */
 .search-box {
   -webkit-app-region: no-drag;
-  background: transparent;
-  /* background: var(--surface); */
+  /* background: transparent; */
+  background: var(--surface);
   /* border: 1px solid var(--border); */
   border: 0;
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 0px;
   position: relative;
-  /* background: blue; */
-  /* box-shadow: var(--shadow-panel); */
+
+  box-shadow: var(--shadow-panel);
 }
 
 form {
