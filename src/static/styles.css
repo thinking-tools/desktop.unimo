@@ -98,6 +98,27 @@ body {
   }
 }
 
+/* ── Linux: opaque fallback (no native vibrancy) ── */
+body[data-platform='linux'] {
+  background: #f5f5f7;
+  --surface: rgba(255, 255, 255, 0.85);
+  --surface-hover: rgba(255, 255, 255, 0.92);
+  --surface-result: rgba(255, 255, 255, 0.80);
+  --pill-bg: rgba(255, 255, 255, 0.85);
+  --pill-hover-bg: rgba(255, 255, 255, 0.95);
+}
+
+@media (prefers-color-scheme: dark) {
+  body[data-platform='linux'] {
+    background: #1e1e20;
+    --surface: rgba(30, 30, 32, 0.90);
+    --surface-hover: rgba(40, 40, 44, 0.95);
+    --surface-result: rgba(30, 30, 32, 0.85);
+    --pill-bg: rgba(30, 30, 32, 0.90);
+    --pill-hover-bg: rgba(40, 40, 44, 0.95);
+  }
+}
+
 /* ── Layout ── */
 #app {
   display: flex;

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, Tray, Menu, screen } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, nativeTheme, Tray, Menu, screen } from 'electron';
 import { join } from 'path';
 import { localEngine } from './search-engine';
 import { execute, registerCallback } from './actions';
@@ -9,6 +9,7 @@ const PANEL_WIDTH = 560;
 const PANEL_MAX_HEIGHT = 480;
 const EDGE_PAD = 16;
 const TOP_PAD = 12;
+const isMac = process.platform === 'darwin';
 
 let tray: Tray | null = null;
 let win: BrowserWindow | null = null;
@@ -41,9 +42,9 @@ const createWindow = () => {
     show: false,
     frame: false,
 
-    transparent: true,
-    backgroundColor: '#00000000',
-    vibrancy: 'fullscreen-ui',
+    transparent: isMac,
+    backgroundColor: isMac ? '#00000000' : nativeTheme.shouldUseDarkColors ? '#1e1e20' : '#f5f5f7',
+    ...(isMac ? { vibrancy: 'fullscreen-ui' as const } : {}),
 
     alwaysOnTop: true,
     skipTaskbar: true,

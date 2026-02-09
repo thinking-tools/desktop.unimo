@@ -1,4 +1,6 @@
 (async () => {
+  document.body.dataset.platform = window.electronAPI.platform;
+
   const isDev = await window.electronAPI.env.isDev();
   if (isDev) {
     document.documentElement.classList.add('dev-mode');
