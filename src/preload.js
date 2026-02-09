@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  platform: process.platform,
   search: {
     query: query => ipcRenderer.invoke('search:query', query),
     web: query => ipcRenderer.invoke('search:web', query),
