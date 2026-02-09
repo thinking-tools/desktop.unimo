@@ -1,12 +1,5 @@
 // tests/e2e/memory-leak.spec.ts
-import {
-  test,
-  expect,
-  _electron as electron,
-  ElectronApplication,
-  Page,
-  CDPSession,
-} from '@playwright/test';
+import { test, expect, _electron as electron, ElectronApplication, Page, CDPSession } from '@playwright/test';
 import { platform } from 'os';
 import { measureAfterGC, heapGrowth, printSnapshots, MemorySnapshot } from './helpers/memory';
 
@@ -25,9 +18,7 @@ const ITERATIONS = {
 
 // --js-flags=--expose-gc enables global.gc() in main process
 const electronArgs =
-  platform() === 'linux'
-    ? ['.', '--no-sandbox', '--js-flags=--expose-gc']
-    : ['.', '--js-flags=--expose-gc'];
+  platform() === 'linux' ? ['.', '--no-sandbox', '--js-flags=--expose-gc'] : ['.', '--js-flags=--expose-gc'];
 
 let app: ElectronApplication;
 let window: Page;
@@ -98,9 +89,7 @@ test.describe.serial('Memory leak detection', () => {
     // Analysis
     printSnapshots(snapshots);
     const growth = heapGrowth(baseline, final_);
-    console.log(
-      `  Growth: main=${growth.mainMB.toFixed(2)} MB, renderer=${growth.rendererMB.toFixed(2)} MB`,
-    );
+    console.log(`  Growth: main=${growth.mainMB.toFixed(2)} MB, renderer=${growth.rendererMB.toFixed(2)} MB`);
 
     expect(
       growth.mainMB,
@@ -169,9 +158,7 @@ test.describe.serial('Memory leak detection', () => {
 
     printSnapshots(snapshots);
     const growth = heapGrowth(baseline, final_);
-    console.log(
-      `  Growth: main=${growth.mainMB.toFixed(2)} MB, renderer=${growth.rendererMB.toFixed(2)} MB`,
-    );
+    console.log(`  Growth: main=${growth.mainMB.toFixed(2)} MB, renderer=${growth.rendererMB.toFixed(2)} MB`);
 
     expect(
       growth.mainMB,
@@ -244,9 +231,7 @@ test.describe.serial('Memory leak detection', () => {
 
     printSnapshots(snapshots);
     const growth = heapGrowth(baseline, final_);
-    console.log(
-      `  Growth: main=${growth.mainMB.toFixed(2)} MB, renderer=${growth.rendererMB.toFixed(2)} MB`,
-    );
+    console.log(`  Growth: main=${growth.mainMB.toFixed(2)} MB, renderer=${growth.rendererMB.toFixed(2)} MB`);
 
     expect(
       growth.mainMB,

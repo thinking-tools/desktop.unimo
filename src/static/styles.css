@@ -103,7 +103,7 @@ body[data-platform='linux'] {
   background: #f5f5f7;
   --surface: rgba(255, 255, 255, 0.85);
   --surface-hover: rgba(255, 255, 255, 0.92);
-  --surface-result: rgba(255, 255, 255, 0.80);
+  --surface-result: rgba(255, 255, 255, 0.8);
   --pill-bg: rgba(255, 255, 255, 0.85);
   --pill-hover-bg: rgba(255, 255, 255, 0.95);
 }
@@ -111,11 +111,21 @@ body[data-platform='linux'] {
 @media (prefers-color-scheme: dark) {
   body[data-platform='linux'] {
     background: #1e1e20;
-    --surface: rgba(30, 30, 32, 0.90);
+    --surface: rgba(30, 30, 32, 0.9);
     --surface-hover: rgba(40, 40, 44, 0.95);
     --surface-result: rgba(30, 30, 32, 0.85);
-    --pill-bg: rgba(30, 30, 32, 0.90);
+    --pill-bg: rgba(30, 30, 32, 0.9);
     --pill-hover-bg: rgba(40, 40, 44, 0.95);
+  }
+}
+
+body[data-platform='darwin'] {
+  background: rgba(245, 245, 247, 0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  body[data-platform='darwin'] {
+    background: rgba(30, 30, 32, 0.7);
   }
 }
 
@@ -152,7 +162,8 @@ form {
   padding: 15px 17px;
   font-size: 18px;
   font-weight: 400;
-  background: transparent;
+  background: var(--surface);
+  border-radius: 14px;
   border: none;
   outline: none;
   color: var(--text-input);

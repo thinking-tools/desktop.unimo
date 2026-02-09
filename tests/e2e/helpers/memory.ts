@@ -36,18 +36,13 @@ export async function forceGC(app: ElectronApplication, cdp: CDPSession): Promis
 /**
  * Capture memory metrics from both main and renderer processes.
  */
-export async function takeSnapshot(
-  app: ElectronApplication,
-  cdp: CDPSession,
-  label: string,
-): Promise<MemorySnapshot> {
+export async function takeSnapshot(app: ElectronApplication, cdp: CDPSession, label: string): Promise<MemorySnapshot> {
   const mainMem = await app.evaluate(() => {
     const m = process.memoryUsage();
     return { heapUsed: m.heapUsed, heapTotal: m.heapTotal, rss: m.rss };
   });
 
-  const rendererMem: { usedSize: number; totalSize: number } =
-    await cdp.send('Runtime.getHeapUsage');
+  const rendererMem: { usedSize: number; totalSize: number } = await cdp.send('Runtime.getHeapUsage');
 
   return {
     mainHeapUsedMB: mainMem.heapUsed / MB,
@@ -75,10 +70,7 @@ export async function measureAfterGC(
 /**
  * Compute heap growth between two snapshots.
  */
-export function heapGrowth(
-  before: MemorySnapshot,
-  after: MemorySnapshot,
-): { mainMB: number; rendererMB: number } {
+export function heapGrowth(before: MemorySnapshot, after: MemorySnapshot): { mainMB: number; rendererMB: number } {
   return {
     mainMB: after.mainHeapUsedMB - before.mainHeapUsedMB,
     rendererMB: after.rendererHeapUsedMB - before.rendererHeapUsedMB,
@@ -90,13 +82,7 @@ export function heapGrowth(
  */
 export function printSnapshots(snapshots: MemorySnapshot[]): void {
   console.log('\n  Memory Snapshots:');
-  console.log(
-    '  ' +
-      'Label'.padEnd(24) +
-      'Main Heap'.padEnd(14) +
-      'Main RSS'.padEnd(14) +
-      'Renderer Heap',
-  );
+  console.log('  ' + 'Label'.padEnd(24) + 'Main Heap'.padEnd(14) + 'Main RSS'.padEnd(14) + 'Renderer Heap');
   console.log('  ' + '-'.repeat(65));
   for (const s of snapshots) {
     console.log(

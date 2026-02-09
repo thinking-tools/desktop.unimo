@@ -36,7 +36,9 @@ test.describe('Window background & readability', () => {
 
     // Verify body background is transparent (rgba with alpha 0)
     const bodyBg = await window.locator('body').evaluate(el => getComputedStyle(el).backgroundColor);
-    expect(bodyBg).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
+    const alphaMatch = bodyBg.match(/rgba?\(\d+,\s*\d+,\s*\d+,\s*([\d.]+)\)/);
+    const alpha = alphaMatch ? parseFloat(alphaMatch[1]) : 1;
+    expect(alpha, `macOS body should be semi-transparent for vibrancy, got: ${bodyBg}`).toBeLessThan(1);
   });
 
   test('Linux uses opaque window background', async () => {
