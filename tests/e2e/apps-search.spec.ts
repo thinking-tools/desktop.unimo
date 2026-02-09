@@ -79,7 +79,7 @@ test.describe('App search', () => {
     // Discovery pass: find which candidates are actually indexed on this machine
     const available: string[] = [];
     for (const appName of candidates) {
-      const query = appName.slice(0, 3).toLowerCase();
+      const query = appName.slice(0, 6).toLowerCase();
       await input.fill(query);
       try {
         await expect(results.first()).toBeVisible({ timeout: 500 });
