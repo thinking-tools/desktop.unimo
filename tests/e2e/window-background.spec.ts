@@ -35,9 +35,7 @@ test.describe('Window background & readability', () => {
     });
 
     // Verify body background is transparent (rgba with alpha 0)
-    const bodyBg = await window.locator('body').evaluate(
-      el => getComputedStyle(el).backgroundColor,
-    );
+    const bodyBg = await window.locator('body').evaluate(el => getComputedStyle(el).backgroundColor);
     expect(bodyBg).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
   });
 
@@ -48,9 +46,7 @@ test.describe('Window background & readability', () => {
     await window.waitForSelector('[data-ready="true"]', { timeout: 5000 });
 
     // Body must have an opaque background on Linux
-    const bodyBg = await window.locator('body').evaluate(
-      el => getComputedStyle(el).backgroundColor,
-    );
+    const bodyBg = await window.locator('body').evaluate(el => getComputedStyle(el).backgroundColor);
     // Should NOT be fully transparent
     expect(bodyBg).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
 
@@ -115,9 +111,7 @@ test.describe('Window background & readability', () => {
     // If input bg is transparent, check against body
     let effectiveBg = bg!;
     if (effectiveBg.a < 0.1) {
-      const bodyBgRaw = await window.locator('body').evaluate(
-        el => getComputedStyle(el).backgroundColor,
-      );
+      const bodyBgRaw = await window.locator('body').evaluate(el => getComputedStyle(el).backgroundColor);
       effectiveBg = parseColor(bodyBgRaw) ?? effectiveBg;
     }
 
@@ -126,12 +120,17 @@ test.describe('Window background & readability', () => {
     const L2 = luminance(effectiveBg.r, effectiveBg.g, effectiveBg.b);
     const contrast = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
 
-    console.log(`  Text color: ${textColor}, Bg: ${bgColor}, Effective bg: rgba(${Math.round(effectiveBg.r)},${Math.round(effectiveBg.g)},${Math.round(effectiveBg.b)},${effectiveBg.a})`);
+    console.log(
+      `  Text color: ${textColor}, Bg: ${bgColor}, Effective bg: rgba(${Math.round(effectiveBg.r)},${Math.round(effectiveBg.g)},${Math.round(effectiveBg.b)},${effectiveBg.a})`,
+    );
     console.log(`  Contrast ratio: ${contrast.toFixed(2)}:1`);
 
     // WCAG AA requires 4.5:1 for normal text, 3:1 for large text (18px+ = large)
     // Our input is 18px so 3:1 is the threshold
-    expect(contrast, `Input text contrast ${contrast.toFixed(2)}:1 below WCAG AA (3:1 for large text)`).toBeGreaterThanOrEqual(3);
+    expect(
+      contrast,
+      `Input text contrast ${contrast.toFixed(2)}:1 below WCAG AA (3:1 for large text)`,
+    ).toBeGreaterThanOrEqual(3);
 
     // Also verify result titles have contrast
     const resultContrast = await window.evaluate(() => {
@@ -151,9 +150,7 @@ test.describe('Window background & readability', () => {
         let effectiveResultBg = rBg;
         if (effectiveResultBg.a < 0.5) {
           // Composite against body background
-          const bodyBgRaw = await window.locator('body').evaluate(
-            el => getComputedStyle(el).backgroundColor,
-          );
+          const bodyBgRaw = await window.locator('body').evaluate(el => getComputedStyle(el).backgroundColor);
           const bodyBg = parseColor(bodyBgRaw);
           if (bodyBg) effectiveResultBg = composite(rBg, bodyBg);
         }
@@ -163,7 +160,10 @@ test.describe('Window background & readability', () => {
         const rContrast = (Math.max(rL1, rL2) + 0.05) / (Math.min(rL1, rL2) + 0.05);
 
         console.log(`  Result title contrast: ${rContrast.toFixed(2)}:1`);
-        expect(rContrast, `Result title contrast ${rContrast.toFixed(2)}:1 below WCAG AA (4.5:1)`).toBeGreaterThanOrEqual(4.5);
+        expect(
+          rContrast,
+          `Result title contrast ${rContrast.toFixed(2)}:1 below WCAG AA (4.5:1)`,
+        ).toBeGreaterThanOrEqual(4.5);
       }
     }
   });
