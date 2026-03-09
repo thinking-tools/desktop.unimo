@@ -20,8 +20,10 @@
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
-    "electron": "40.2.1",
-    "electron-builder": "26.7.0",
+    "@types/node": "25.3.3",
+    "@types/ws": "8.18.1",
+    "electron": "40.7.0",
+    "electron-builder": "26.8.2",
     "esbuild": "0.27.3",
     "husky": "9.1.7",
     "playwright": "1.58.2",
@@ -40,7 +42,8 @@
     "printWidth": 120
   },
   "dependencies": {
-    "get-installed-apps": "1.1.1"
+    "get-installed-apps": "1.1.1",
+    "ws": "^8.19.0"
   },
   "author": "thinking.tools",
   "email": "contact@thinking.tools",

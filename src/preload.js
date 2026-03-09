@@ -3,8 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   search: {
-    query: query => ipcRenderer.invoke('search:query', query),
-    web: query => ipcRenderer.invoke('search:web', query),
+    query: ({ type, query, seq }) => ipcRenderer.invoke('search:query', { type, query, seq }),
+    suggest: (query, seq) => ipcRenderer.invoke('search:suggest', query, seq),
   },
   apps: {
     getIcon: id => ipcRenderer.invoke('apps:icon', id),

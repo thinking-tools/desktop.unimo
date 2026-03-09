@@ -1,9 +1,20 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, nativeTheme, Tray, Menu, screen } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  globalShortcut,
+  ipcMain,
+  nativeImage,
+  nativeTheme,
+  shell,
+  Tray,
+  Menu,
+  screen,
+} from 'electron';
 import { join } from 'path';
 import { localEngine } from './search-engine';
 import { execute, registerCallback } from './actions';
 import { loadIcon } from './providers/apps';
-import { websearch } from './browser/websearch';
+import { websearch } from './providers/websearch';
 
 const PANEL_WIDTH = 560;
 const PANEL_MAX_HEIGHT = 480;
@@ -131,8 +142,41 @@ if (!gotLock) {
 
     ipcMain.handle('env:is-dev', () => isDev);
     ipcMain.handle('perf:get-start-time', () => mainStartTime);
-    ipcMain.handle('search:query', (_e, query: string) => localEngine.search(query));
-    ipcMain.handle('search:web', (_e, query: string) => websearch?.search(query));
+    let lastSearchSeq = 0;
+    let lastSuggestSeq = 0;
+
+    ipcMain.handle('search:query', async (_e, { type, query, seq }) => {
+      try {
+        if (type === 'web') {
+          if (seq != null) lastSearchSeq = seq;
+          const raw = await websearch?.search(query);
+          if (seq != null && seq !== lastSearchSeq) return [];
+          if (!raw?.length) return [];
+          return raw.map((r, i) => ({
+            id: `web:${r.url}`,
+            icon: '🌐',
+            title: r.title,
+            subtitle: r.snippet || new URL(r.url).hostname,
+            score: 100 - i,
+            category: 'web',
+          }));
+        }
+        return await localEngine.search(type, query);
+      } catch (err) {
+        console.warn('[search] query error:', (err as Error).message);
+        return [];
+      }
+    });
+    ipcMain.handle('search:suggest', async (_e, query: string, seq?: number) => {
+      try {
+        if (seq != null) lastSuggestSeq = seq;
+        const results = (await websearch?.suggest(query)) ?? [];
+        if (seq != null && seq !== lastSuggestSeq) return [];
+        return results;
+      } catch {
+        return [];
+      }
+    });
     ipcMain.handle('apps:icon', (_e, id: string) => loadIcon(id));
     ipcMain.handle('chat:ask', (_e, _msg: string, _opts: unknown) => ({ id: '', response: '' }));
     ipcMain.handle('chat:ephemeral', (_e, _msg: string, _opts: unknown) => ({ response: '' }));
@@ -141,7 +185,13 @@ if (!gotLock) {
     ipcMain.handle('chat:get-history', () => []);
     ipcMain.handle('chat:clear-history', () => true);
     // Execute
-    ipcMain.handle('execute:command', (_e, id: string) => execute(id));
+    ipcMain.handle('execute:command', async (_e, id: string) => {
+      if (id.startsWith('web:')) {
+        await shell.openExternal(id.slice(4));
+        return true;
+      }
+      return execute(id);
+    });
     ipcMain.handle('execute:action', (_e, action: string, query: string) => {
       console.log('Executing action:', action, 'with query:', query);
       switch (action) {
@@ -181,6 +231,7 @@ registerCallback('settings:open', () => {
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
+  websearch?.destroy();
 });
 
 app.on('window-all-closed', () => {

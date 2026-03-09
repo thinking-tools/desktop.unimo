@@ -10,7 +10,7 @@ class LocalSearchEngine {
     this.providers.sort((a, b) => b.priority - a.priority);
   }
 
-  async search(query: string): Promise<SearchResult[]> {
+  async search(type: string, query: string): Promise<SearchResult[]> {
     const results = await Promise.all(
       this.providers.map(async p => {
         try {

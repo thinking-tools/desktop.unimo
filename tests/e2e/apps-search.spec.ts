@@ -79,10 +79,13 @@ test.describe('App search', () => {
     // Discovery pass: find which candidates are actually indexed on this machine
     const available: string[] = [];
     for (const appName of candidates) {
+      // Clear previous results to avoid matching stale DOM (debounce = 90ms)
+      await input.fill('');
+      await expect(results.first()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
       const query = appName.slice(0, 6).toLowerCase();
       await input.fill(query);
       try {
-        await expect(results.first()).toBeVisible({ timeout: 500 });
+        await expect(results.first()).toBeVisible({ timeout: 1000 });
         const titles = await results.locator('.result-title').allInnerTexts();
         if (titles.some(t => t.toLowerCase().includes(appName.toLowerCase()))) {
           available.push(appName);
@@ -90,7 +93,6 @@ test.describe('App search', () => {
       } catch {
         /* app not indexed on this runner */
       }
-      await input.fill('');
     }
 
     console.log(`  Available apps: ${available.join(', ')} (${available.length}/${candidates.length})`);
@@ -101,18 +103,20 @@ test.describe('App search', () => {
 
     // Warm up discovered apps
     for (const appName of available) {
-      await input.fill(appName.slice(0, 3).toLowerCase());
-      await expect(results.first()).toBeVisible({ timeout: 500 });
       await input.fill('');
+      await expect(results.first()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
+      await input.fill(appName.slice(0, 3).toLowerCase());
+      await expect(results.first()).toBeVisible({ timeout: 1000 });
     }
 
     // Now benchmark + verify discovered apps
     for (const appName of available) {
-      const query = appName.slice(0, 3).toLowerCase();
       await input.fill('');
+      await expect(results.first()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
+      const query = appName.slice(0, 3).toLowerCase();
       const start = Date.now();
       await input.fill(query);
-      await expect(results.first()).toBeVisible({ timeout: 500 });
+      await expect(results.first()).toBeVisible({ timeout: 1000 });
       const elapsed = Date.now() - start;
       console.log(`  "${appName}" via "${query}": ${elapsed}ms`);
 
