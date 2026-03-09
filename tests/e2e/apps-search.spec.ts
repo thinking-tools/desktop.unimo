@@ -81,7 +81,9 @@ test.describe('App search', () => {
     for (const appName of candidates) {
       // Clear previous results to avoid matching stale DOM (debounce = 90ms)
       await input.fill('');
-      await expect(results.first()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
+      await expect(results.first())
+        .not.toBeVisible({ timeout: 1000 })
+        .catch(() => {});
       const query = appName.slice(0, 6).toLowerCase();
       await input.fill(query);
       try {
@@ -104,7 +106,9 @@ test.describe('App search', () => {
     // Warm up discovered apps
     for (const appName of available) {
       await input.fill('');
-      await expect(results.first()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
+      await expect(results.first())
+        .not.toBeVisible({ timeout: 1000 })
+        .catch(() => {});
       await input.fill(appName.slice(0, 3).toLowerCase());
       await expect(results.first()).toBeVisible({ timeout: 1000 });
     }
@@ -112,7 +116,9 @@ test.describe('App search', () => {
     // Now benchmark + verify discovered apps
     for (const appName of available) {
       await input.fill('');
-      await expect(results.first()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
+      await expect(results.first())
+        .not.toBeVisible({ timeout: 1000 })
+        .catch(() => {});
       const query = appName.slice(0, 3).toLowerCase();
       const start = Date.now();
       await input.fill(query);
