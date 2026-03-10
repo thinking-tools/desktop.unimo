@@ -11,10 +11,10 @@ import {
   screen,
 } from 'electron';
 import { join } from 'path';
-import { localEngine } from './search-engine';
-import { execute, registerCallback } from './actions';
-import { loadIcon } from './providers/apps';
-import { websearch } from './providers/websearch';
+import { localEngine } from './main/search-engine';
+import { execute, registerCallback } from './main/actions';
+import { loadIcon } from './main/providers/apps';
+import { websearch } from './main/providers/websearch';
 
 const PANEL_WIDTH = 560;
 const PANEL_MAX_HEIGHT = 480;
