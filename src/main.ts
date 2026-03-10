@@ -15,6 +15,7 @@ import { localEngine } from './main/search-engine';
 import { execute, registerCallback } from './main/actions';
 import { loadIcon } from './main/providers/apps';
 import { websearch } from './main/providers/websearch';
+import { credentials } from './main/credentials';
 
 const PANEL_WIDTH = 560;
 const PANEL_MAX_HEIGHT = 480;
@@ -213,6 +214,15 @@ if (!gotLock) {
     ipcMain.handle('window:hide', () => {
       win?.hide();
     });
+
+    credentials.init();
+    ipcMain.handle('auth:list', () => credentials.list());
+    ipcMain.handle('auth:get', (_e, id: string, pin?: string) => credentials.get(id, pin));
+    ipcMain.handle('auth:store', (_e, name: string, endpoint: string, data: Record<string, unknown>, pin?: string) =>
+      credentials.store(name, endpoint, data, pin),
+    );
+    ipcMain.handle('auth:remove', (_e, id: string) => credentials.remove(id));
+    ipcMain.handle('auth:clear', () => credentials.clear());
 
     globalShortcut.register('CommandOrControl+Space', () => toggleWindow('search'));
     globalShortcut.register('CommandOrControl+T', () => toggleWindow('web'));

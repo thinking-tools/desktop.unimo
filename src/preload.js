@@ -38,9 +38,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isDev: () => ipcRenderer.invoke('env:is-dev'),
   },
   auth: {
-    check: () => ipcRenderer.invoke('auth:check'),
-    getCredentials: () => ipcRenderer.invoke('auth:get-credentials'),
-    storeCredentials: data => ipcRenderer.invoke('auth:store-credentials', data),
+    list: () => ipcRenderer.invoke('auth:list'),
+    get: (id, pin) => ipcRenderer.invoke('auth:get', id, pin),
+    store: (name, endpoint, data, pin) => ipcRenderer.invoke('auth:store', name, endpoint, data, pin),
+    remove: id => ipcRenderer.invoke('auth:remove', id),
     clear: () => ipcRenderer.invoke('auth:clear'),
   },
 });
