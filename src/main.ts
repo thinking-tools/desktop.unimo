@@ -1,14 +1,4 @@
-import {
-  app,
-  BrowserWindow,
-  globalShortcut,
-  ipcMain,
-  nativeImage,
-  shell,
-  Tray,
-  Menu,
-  screen,
-} from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, shell, Tray, Menu, screen } from 'electron';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 

@@ -28,8 +28,7 @@ const store = new Store<{ data: string }>({
 
 let cache: HistoryEntry[] = [];
 
-const pack = (entries: HistoryEntry[]): string =>
-  safeStorage.encryptString(JSON.stringify(entries)).toString('base64');
+const pack = (entries: HistoryEntry[]): string => safeStorage.encryptString(JSON.stringify(entries)).toString('base64');
 
 const unpack = (): HistoryEntry[] => {
   const raw = store.get('data');

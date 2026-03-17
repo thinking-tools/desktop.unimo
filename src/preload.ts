@@ -21,8 +21,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     clearHistory: () => ipcRenderer.invoke('chat:clear-history'),
   },
   execute: {
-    command: (id: string, query?: string, result?: unknown) =>
-      ipcRenderer.invoke('execute:command', id, query, result),
+    command: (id: string, query?: string, result?: unknown) => ipcRenderer.invoke('execute:command', id, query, result),
     action: (action: string, query: string) => ipcRenderer.invoke('execute:action', action, query),
   },
   window: {
