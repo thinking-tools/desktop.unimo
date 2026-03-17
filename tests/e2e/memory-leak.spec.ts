@@ -38,8 +38,8 @@ test.describe.serial('Memory leak detection', () => {
     await window.waitForSelector('[data-ready="true"]', { timeout: 10_000 });
     cdp = await window.context().newCDPSession(window);
 
-    const input = window.locator('#search-input');
-    const results = window.locator('.results .result-item');
+    const input = window.locator('#input');
+    const results = window.locator('#results [role="option"]');
 
     // Wait for index to be ready
     await expect(async () => {
@@ -108,8 +108,8 @@ test.describe.serial('Memory leak detection', () => {
     await window.waitForSelector('[data-ready="true"]', { timeout: 10_000 });
     cdp = await window.context().newCDPSession(window);
 
-    const input = window.locator('#search-input');
-    const results = window.locator('.results .result-item');
+    const input = window.locator('#input');
+    const results = window.locator('#results [role="option"]');
 
     // Wait for index
     await expect(async () => {
@@ -177,8 +177,8 @@ test.describe.serial('Memory leak detection', () => {
     await window.waitForSelector('[data-ready="true"]', { timeout: 10_000 });
     cdp = await window.context().newCDPSession(window);
 
-    const input = window.locator('#search-input');
-    const results = window.locator('.results .result-item');
+    const input = window.locator('#input');
+    const results = window.locator('#results [role="option"]');
 
     // Wait for index
     await expect(async () => {

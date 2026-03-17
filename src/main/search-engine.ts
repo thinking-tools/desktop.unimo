@@ -21,10 +21,16 @@ class LocalSearchEngine {
       }),
     );
 
-    return results
-      .flat()
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 12);
+    const flat = results.flat().sort((a, b) => b.score - a.score);
+    const seen = new Set<string>();
+    const deduped: SearchResult[] = [];
+    for (const r of flat) {
+      if (seen.has(r.id)) continue;
+      seen.add(r.id);
+      deduped.push(r);
+      if (deduped.length >= 12) break;
+    }
+    return deduped;
   }
 
   async buildIndexes() {
@@ -37,9 +43,11 @@ export const localEngine = new LocalSearchEngine();
 // Register local providers
 import { appsProvider } from './providers/apps.ts';
 import { commandsProvider } from './providers/commands.ts';
+import { historyProvider } from './providers/history.ts';
 
 localEngine.register(appsProvider);
 localEngine.register(commandsProvider);
+localEngine.register(historyProvider);
 
 // Re-export web search separately
 // export { searchWeb, warmConnection } from './providers/web-provider';

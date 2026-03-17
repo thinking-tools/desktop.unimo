@@ -10,6 +10,7 @@ export interface SearchResult {
 }
 
 interface PendingRequest {
+  expect: 'results' | 'suggestions';
   resolve: (data: unknown) => void;
   reject: (error: Error) => void;
   timer: ReturnType<typeof setTimeout>;
@@ -74,18 +75,26 @@ export class WebSearch {
       }, CONNECT_TIMEOUT);
 
       ws.addEventListener('open', () => {
-        console.log('[ws] socket opened, waiting for ready');
+        console.log('[ws] connected, sending hello');
+        ws.send(JSON.stringify({ type: 'hello' }));
       });
 
       ws.addEventListener('message', evt => {
-        const raw = typeof evt.data === 'string' ? evt.data : String(evt.data);
+        const raw =
+          typeof evt.data === 'string'
+            ? evt.data
+            : Buffer.isBuffer(evt.data)
+              ? evt.data.toString('utf-8')
+              : String(evt.data);
+        console.log('[ws] recv:', raw.slice(0, 200));
         let msg: Record<string, unknown>;
         try {
           msg = JSON.parse(raw);
-        } catch {
+        } catch (e) {
+          console.warn('[ws] failed to parse message:', (e as Error).message);
           return;
         }
-
+        console.warn('[ws] message:', msg);
         if (msg.type === 'ready') {
           if (!settled) {
             clearTimeout(timeout);
@@ -126,16 +135,25 @@ export class WebSearch {
   private handleResponse(msg: Record<string, unknown>) {
     const p = this.pending.get(msg.id as string);
     if (!p) return;
-    this.pending.delete(msg.id as string);
-    clearTimeout(p.timer);
 
     if (msg.type === 'error') {
+      this.pending.delete(msg.id as string);
+      clearTimeout(p.timer);
       p.reject(new Error(msg.error as string));
-    } else if (msg.type === 'results') {
-      p.resolve(this.mapResults(msg.data));
-    } else if (msg.type === 'suggestions') {
-      p.resolve((msg.suggestions as string[]) ?? []);
+    } else if (msg.type === p.expect) {
+      this.pending.delete(msg.id as string);
+      clearTimeout(p.timer);
+      if (msg.type === 'results') {
+        p.resolve(this.mapResults(msg.data));
+      } else {
+        p.resolve((msg.suggestions as string[]) ?? []);
+      }
     }
+    // mismatched type → ignore, keep pending entry for its real response
+  }
+
+  private stripHtml(s: string): string {
+    return s.replace(/<[^>]*>/g, '');
   }
 
   private mapResults(data: any): SearchResult[] {
@@ -146,8 +164,8 @@ export class WebSearch {
       .filter((r: any) => r.url && r.title)
       .map((r: any) => ({
         url: r.url,
-        title: r.title,
-        snippet: r.description ?? r.snippet,
+        title: this.stripHtml(r.title),
+        snippet: this.stripHtml(r.description ?? r.snippet ?? ''),
         published: r.page_age ? new Date(r.page_age) : undefined,
         thumbnailUrl: r.thumbnail?.src ?? r.thumbnail?.url,
       }));
@@ -199,6 +217,7 @@ export class WebSearch {
       }, REQUEST_TIMEOUT);
 
       this.pending.set(id, {
+        expect: 'results',
         resolve: resolve as (data: unknown) => void,
         reject,
         timer,
@@ -229,6 +248,7 @@ export class WebSearch {
       }, SUGGEST_TIMEOUT);
 
       this.pending.set(id, {
+        expect: 'suggestions',
         resolve: resolve as (data: unknown) => void,
         reject,
         timer,

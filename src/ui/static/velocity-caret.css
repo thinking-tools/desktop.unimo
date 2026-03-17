@@ -1,0 +1,145 @@
+/*
+ * Velocity Caret — visual styles.
+ * Import alongside velocity-caret.ts.
+ *
+ * Override the --vc-* custom properties on :root or any ancestor
+ * to theme the caret and trail colours.
+ */
+
+:root {
+  --vc-accent: light-dark(#818cf8, #818cf8);
+  --vc-trail: light-dark(rgb(129 140 248 / 0.55), rgb(129 140 248 / 0.7));
+  --vc-trail-end: light-dark(rgb(99 102 241 / 0.25), rgb(99 102 241 / 0.35));
+  --vc-reverse-trail: light-dark(rgb(244 114 182 / 0.55), rgb(244 114 182 / 0.7));
+  --vc-reverse-end: light-dark(rgb(236 72 153 / 0.25), rgb(236 72 153 / 0.35));
+  --vc-glow: light-dark(rgb(99 102 241 / 0.25), rgb(99 102 241 / 0.35));
+  --vc-glow-reverse: light-dark(rgb(236 72 153 / 0.25), rgb(236 72 153 / 0.35));
+  --vc-selection: light-dark(rgb(99 102 241 / 0.2), rgb(99 102 241 / 0.3));
+}
+
+/* ── hide native caret on the bound input ── */
+.vc-input {
+  caret-color: transparent;
+}
+
+.vc-input::selection {
+  background: var(--vc-selection);
+}
+
+/* ── mirror overlay (positioned over the input) ── */
+.vc-mirror {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  pointer-events: none;
+  color: transparent;
+  overflow: hidden;
+}
+
+.vc-text {
+  display: inline;
+}
+
+/* ── caret bar ── */
+.vc-caret {
+  position: relative;
+  display: inline-block;
+  width: 2.5px;
+  height: 1.15em;
+  background: var(--vc-accent);
+  border-radius: 2px;
+  opacity: 0;
+  vertical-align: middle;
+  margin-top: -1px;
+  will-change: transform, opacity;
+}
+
+.vc-caret.visible {
+  opacity: 1;
+}
+
+/* ── trail (forward) ── */
+.vc-caret::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 80px;
+  height: 100%;
+  background: linear-gradient(to left, var(--vc-trail) 0%, var(--vc-trail-end) 35%, transparent 100%);
+  border-radius: 2px 0 0 2px;
+  transform: scaleX(0) translate3d(0, 0, 0);
+  transform-origin: right center;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* ── trail (reverse / backspace) ── */
+.vc-caret.reverse::before {
+  right: auto;
+  left: 100%;
+  transform-origin: left center;
+  background: linear-gradient(
+    to right,
+    var(--vc-reverse-trail) 0%,
+    var(--vc-reverse-end) 35%,
+    transparent 100%
+  );
+  border-radius: 0 2px 2px 0;
+}
+
+.vc-caret.velocity::before {
+  transform: scaleX(var(--trail-scale, 0.3)) translate3d(0, 0, 0);
+  opacity: 1;
+  transition: none;
+}
+
+.vc-caret.fading::before {
+  transform: scaleX(0) translate3d(0, 0, 0);
+  opacity: 0;
+  transition:
+    transform 100ms cubic-bezier(0, 0, 0.2, 1),
+    opacity 100ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ── glow halo ── */
+.vc-caret::after {
+  content: '';
+  position: absolute;
+  inset: -6px -8px;
+  background: radial-gradient(ellipse at center, var(--vc-glow) 0%, transparent 70%);
+  transform: translate3d(0, 0, 0) scale(0.6);
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    opacity 80ms ease-out,
+    transform 80ms ease-out;
+}
+
+.vc-caret.velocity::after {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1.1);
+}
+
+.vc-caret.reverse::after {
+  background: radial-gradient(ellipse at center, var(--vc-glow-reverse) 0%, transparent 70%);
+}
+
+/* ── blink ── */
+@keyframes vc-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.vc-caret.blinking {
+  animation: vc-blink 530ms ease-in-out infinite;
+}

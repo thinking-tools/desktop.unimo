@@ -29,8 +29,8 @@ test.describe('App search', () => {
     const window = await app.firstWindow();
     await window.waitForSelector('[data-ready="true"]', { timeout: 5000 });
 
-    const input = window.locator('#search-input');
-    const results = window.locator('.results .result-item');
+    const input = window.locator('#input');
+    const results = window.locator('#results [role="option"]');
 
     // Poll until the app index is ready (buildIndex runs async after startup)
     await expect(async () => {
@@ -67,8 +67,8 @@ test.describe('App search', () => {
     const window = await app.firstWindow();
     await window.waitForSelector('[data-ready="true"]', { timeout: 5000 });
 
-    const input = window.locator('#search-input');
-    const results = window.locator('.results .result-item');
+    const input = window.locator('#input');
+    const results = window.locator('#results [role="option"]');
 
     // Wait for index
     await expect(async () => {
@@ -88,7 +88,7 @@ test.describe('App search', () => {
       await input.fill(query);
       try {
         await expect(results.first()).toBeVisible({ timeout: 1000 });
-        const titles = await results.locator('.result-title').allInnerTexts();
+        const titles = await results.locator('b').allInnerTexts();
         if (titles.some(t => t.toLowerCase().includes(appName.toLowerCase()))) {
           available.push(appName);
         }
@@ -128,7 +128,7 @@ test.describe('App search', () => {
 
       expect(elapsed, `Search for "${appName}" exceeded ${SEARCH_RESPONSE_MS}ms`).toBeLessThan(SEARCH_RESPONSE_MS);
 
-      const titles = await results.locator('.result-title').allInnerTexts();
+      const titles = await results.locator('b').allInnerTexts();
       const found = titles.some(t => t.toLowerCase().includes(appName.toLowerCase()));
       expect(found, `Expected "${appName}" in results for query "${query}". Got: ${titles.join(', ')}`).toBe(true);
     }

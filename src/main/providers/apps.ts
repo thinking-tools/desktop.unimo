@@ -1,7 +1,11 @@
 // providers/apps.ts
 import { SearchProvider, SearchResult } from '../search-results';
 import { registerBatch } from '../actions';
-import { getInstalledApps } from 'get-installed-apps';
+// loaded dynamically to avoid bundling CJS into ESM main
+const getInstalledApps = async () => {
+  const mod = await import('get-installed-apps-linux');
+  return mod.getInstalledApps();
+};
 import { app } from 'electron';
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
@@ -46,7 +50,7 @@ const extractMacIcon = async (appPath: string): Promise<string | null> => {
 
     // Convert icns to png using sips
     const tmpPng = join(tmpdir(), `${randomUUID()}.png`);
-    await execAsync(`sips -s format png -z 32 32 "${iconPath}" --out "${tmpPng}" 2>/dev/null`);
+    await execAsync(`sips -s format png -z 64 64 "${iconPath}" --out "${tmpPng}" 2>/dev/null`);
 
     if (existsSync(tmpPng)) {
       const data = readFileSync(tmpPng);

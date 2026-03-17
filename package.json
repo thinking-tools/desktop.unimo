@@ -1,17 +1,18 @@
 {
   "name": "unimo",
   "version": "0.0.1",
-  "main": "dist/main.cjs",
+  "main": "dist/main.js",
   "type": "module",
   "scripts": {
-    "dev": "npm run build && NODE_ENV=development node --env-file=.env scripts/launch.js",
-    "start": "npm run build && NODE_ENV=production node --env-file=.env scripts/launch.js",
+    "dev": "npm run build && NODE_ENV=development tsx --env-file=.env scripts/launch.ts",
+    "start": "npm run build && NODE_ENV=production tsx --env-file=.env scripts/launch.ts",
     "test": "npm run build && playwright test",
-    "lint": "prettier --check 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
-    "format": "prettier --write 'src/**/*.{js,ts,json,html}' 'tests/**/*.{js,ts,html}'",
-    "build:main": "esbuild src/main.ts --bundle --platform=node --external:electron --format=cjs --outfile=dist/main.cjs",
-    "build:ui": "cp src/index.html src/renderer.js src/preload.js dist/ && cp -r src/ui dist/ui",
-    "build": "npm run build:main && npm run build:ui",
+    "lint": "prettier --check 'src/**/*.{ts,json,html}' 'tests/**/*.{ts,html}'",
+    "format": "prettier --write 'src/**/*.{ts,json,html}' 'tests/**/*.{ts,html}'",
+    "build:main": "esbuild src/main.ts --bundle --platform=node --packages=external --format=esm --outfile=dist/main.js",
+    "build:preload": "esbuild src/preload.ts --bundle --platform=node --external:electron --format=cjs --outfile=dist/preload.js",
+    "build:ui": "cp src/index.html dist/ && mkdir -p dist/ui && esbuild src/ui/renderer.ts --bundle --format=esm --outfile=dist/ui/renderer.js && rm -rf dist/ui/static && cp -r src/ui/static dist/ui/static",
+    "build": "npm run build:main && npm run build:preload && npm run build:ui",
     "app:mac": "npm run build && electron-builder --mac",
     "app:win": "npm run build && electron-builder --win",
     "app:linux": "npm run build && electron-builder --linux",
@@ -20,11 +21,11 @@
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
-    "@types/node": "25.4.0",
+    "@types/node": "25.5.0",
     "@types/ws": "8.18.1",
-    "electron": "40.8.0",
+    "electron": "41.0.2",
     "electron-builder": "26.8.2",
-    "esbuild": "0.27.3",
+    "esbuild": "0.27.4",
     "husky": "9.1.7",
     "playwright": "1.58.2",
     "prettier": "3.8.1",
@@ -42,9 +43,9 @@
     "printWidth": 120
   },
   "dependencies": {
-    "electron-store": "^11.0.2",
-    "get-installed-apps": "1.1.1",
-    "ws": "^8.19.0"
+    "electron-store": "11.0.2",
+    "get-installed-apps-linux": "1.2.2",
+    "ws": "8.19.0"
   },
   "author": "thinking.tools",
   "email": "contact@thinking.tools",
@@ -60,8 +61,7 @@
     "productName": "unimo",
     "files": [
       "dist/**/*",
-      "assets/**/*",
-      "node_modules/get-installed-apps/build/Release/get_installed_apps.node"
+      "assets/**/*"
     ],
     "directories": {
       "buildResources": "assets"

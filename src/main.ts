@@ -4,21 +4,25 @@ import {
   globalShortcut,
   ipcMain,
   nativeImage,
-  nativeTheme,
   shell,
   Tray,
   Menu,
   screen,
 } from 'electron';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 import { localEngine } from './main/search-engine';
 import { execute, registerCallback } from './main/actions';
 import { loadIcon } from './main/providers/apps';
 import { websearch } from './main/providers/websearch';
 import { credentials } from './main/credentials';
+import { initHistory, recordSelection, recordSeen } from './main/providers/history';
+import { getFavicon, prefetchFavicons } from './main/favicon-cache';
 
-const PANEL_WIDTH = 560;
-const PANEL_MAX_HEIGHT = 480;
+const PANEL_WIDTH = 490;
+const PANEL_MAX_HEIGHT = 380;
 const EDGE_PAD = 16;
 const TOP_PAD = 12;
 const isMac = process.platform === 'darwin';
@@ -53,16 +57,17 @@ const createWindow = () => {
     y: y + TOP_PAD,
     show: false,
     frame: false,
+    transparent: true,
 
-    transparent: isMac,
-    backgroundColor: isMac ? '#00000000' : nativeTheme.shouldUseDarkColors ? '#1e1e20' : '#f5f5f7',
-    ...(isMac ? { vibrancy: 'fullscreen-ui' as const } : {}),
+    // transparent: isMac,
+    // backgroundColor: isMac ? '#00000000' : nativeTheme.shouldUseDarkColors ? '#1e1e20' : '#f5f5f7',
+    // ...(isMac ? { vibrancy: 'fullscreen-ui' as const } : {}),
 
     alwaysOnTop: true,
     skipTaskbar: true,
     movable: false,
     resizable: false,
-    hasShadow: true,
+    hasShadow: false,
     roundedCorners: true,
     webPreferences: {
       contextIsolation: true,
@@ -100,7 +105,7 @@ const createWindow = () => {
   return win;
 };
 
-const toggleWindow = (action = 'search') => {
+const toggleWindow = () => {
   if (!win || win.isDestroyed()) {
     createWindow();
     return;
@@ -115,7 +120,7 @@ const toggleWindow = (action = 'search') => {
 
   win.setPosition(x + width - PANEL_WIDTH - EDGE_PAD, y + TOP_PAD, false);
   win.show();
-  win.webContents.send(action === 'web' ? 'window:show:web' : 'window:show:search');
+  win.webContents.send('window:show:search');
   win.focus();
 };
 
@@ -151,16 +156,26 @@ if (!gotLock) {
         if (type === 'web') {
           if (seq != null) lastSearchSeq = seq;
           const raw = await websearch?.search(query);
+
           if (seq != null && seq !== lastSearchSeq) return [];
           if (!raw?.length) return [];
-          return raw.map((r, i) => ({
-            id: `web:${r.url}`,
-            icon: '🌐',
-            title: r.title,
-            subtitle: r.snippet || new URL(r.url).hostname,
-            score: 100 - i,
-            category: 'web',
-          }));
+          const results = raw.map((r, i) => {
+            let host = r.url;
+            try {
+              host = new URL(r.url).hostname;
+            } catch {}
+            return {
+              id: `web:${r.url}`,
+              icon: '🌐',
+              title: r.title,
+              subtitle: r.snippet || host,
+              score: 100 - i,
+              category: 'web' as const,
+            };
+          });
+          recordSeen(query, results);
+          prefetchFavicons(raw.map(r => r.url));
+          return results;
         }
         return await localEngine.search(type, query);
       } catch (err) {
@@ -168,17 +183,31 @@ if (!gotLock) {
         return [];
       }
     });
-    ipcMain.handle('search:suggest', async (_e, query: string, seq?: number) => {
-      try {
-        if (seq != null) lastSuggestSeq = seq;
-        const results = (await websearch?.suggest(query)) ?? [];
-        if (seq != null && seq !== lastSuggestSeq) return [];
-        return results;
-      } catch {
-        return [];
+    let suggestTimer: ReturnType<typeof setTimeout> | null = null;
+    let suggestPrev: ((v: string[]) => void) | null = null;
+
+    ipcMain.handle('search:suggest', (_e, query: string, seq?: number) => {
+      if (seq != null) lastSuggestSeq = seq;
+      if (suggestTimer) {
+        clearTimeout(suggestTimer);
+        suggestPrev?.([]);
       }
+      return new Promise<string[]>(resolve => {
+        suggestPrev = resolve;
+        suggestTimer = setTimeout(async () => {
+          suggestTimer = null;
+          suggestPrev = null;
+          try {
+            const results = (await websearch?.suggest(query)) ?? [];
+            resolve(seq != null && seq !== lastSuggestSeq ? [] : results);
+          } catch {
+            resolve([]);
+          }
+        }, 200);
+      });
     });
     ipcMain.handle('apps:icon', (_e, id: string) => loadIcon(id));
+    ipcMain.handle('favicon:get', (_e, url: string) => getFavicon(url));
     ipcMain.handle('chat:ask', (_e, _msg: string, _opts: unknown) => ({ id: '', response: '' }));
     ipcMain.handle('chat:ephemeral', (_e, _msg: string, _opts: unknown) => ({ response: '' }));
     ipcMain.handle('chat:reply', (_e, _id: string, _msg: string) => ({ response: '' }));
@@ -186,13 +215,18 @@ if (!gotLock) {
     ipcMain.handle('chat:get-history', () => []);
     ipcMain.handle('chat:clear-history', () => true);
     // Execute
-    ipcMain.handle('execute:command', async (_e, id: string) => {
-      if (id.startsWith('web:')) {
-        await shell.openExternal(id.slice(4));
-        return true;
-      }
-      return execute(id);
-    });
+    ipcMain.handle(
+      'execute:command',
+      async (_e, id: string, query?: string, result?: import('./main/search-results').SearchResult) => {
+        if (query && result) recordSelection(query, result);
+
+        if (id.startsWith('web:')) {
+          await shell.openExternal(id.slice(4));
+          return true;
+        }
+        return execute(id);
+      },
+    );
     ipcMain.handle('execute:action', (_e, action: string, query: string) => {
       console.log('Executing action:', action, 'with query:', query);
       switch (action) {
@@ -216,6 +250,7 @@ if (!gotLock) {
     });
 
     credentials.init();
+    initHistory();
     ipcMain.handle('auth:list', () => credentials.list());
     ipcMain.handle('auth:get', (_e, id: string, pin?: string) => credentials.get(id, pin));
     ipcMain.handle('auth:store', (_e, name: string, endpoint: string, data: Record<string, unknown>, pin?: string) =>
@@ -224,8 +259,7 @@ if (!gotLock) {
     ipcMain.handle('auth:remove', (_e, id: string) => credentials.remove(id));
     ipcMain.handle('auth:clear', () => credentials.clear());
 
-    globalShortcut.register('CommandOrControl+Space', () => toggleWindow('search'));
-    globalShortcut.register('CommandOrControl+T', () => toggleWindow('web'));
+    globalShortcut.register('CommandOrControl+Space', () => toggleWindow());
 
     createWindow();
   });

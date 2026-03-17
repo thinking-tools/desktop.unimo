@@ -1,52 +1,52 @@
-<!-- src/index.html -->
-
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>unimo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>unimo.desktop</title>
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; img-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'"
     />
-
-    <link rel="stylesheet" href="ui/static/styles.css" />
+    <link rel="stylesheet" href="./ui/static/styles.css" />
   </head>
   <body>
-    <div id="app" data-ready="false" data-startup-ms="">
-      <div class="search-box">
-        <div class="input-mirror" aria-hidden="true">
-          <span id="text-before-caret"></span><span class="caret" id="caret"></span>
-        </div>
-        <input id="search-input" type="text" placeholder="Search, talk or note..." />
+    <template id="tpl-item">
+      <div role="option">
+        <i aria-hidden="true"></i>
+        <span><b></b><small></small></span>
+        <nav aria-label="Actions">
+          <button data-action="primary" aria-label="Open" title="Enter">↵</button>
+          <button data-action="more" aria-label="More actions">⋯</button>
+        </nav>
       </div>
-      <span class="text-measurer" id="measurer"></span>
-      <div class="action-buttons" hidden>
-        <button type="button" class="active" data-action="search">All</button>
-        <button type="button" data-action="web">Web</button>
-        <button type="button" data-action="ai">Sqip</button>
-        <button type="button" data-action="notes">Notes</button>
-      </div>
-      <div class="results">
-        <!-- Example items -->
-        <!-- <div class="result-item active">
-          <div class="result-icon">📁</div>
-          <div class="result-content">
-            <div class="result-title">Open Project</div>
-            <div class="result-subtitle">~/code/lattice-sdk</div>
-          </div>
-          <span class="result-shortcut">⏎</span>
-        </div>
-        <div class="result-item">
-          <div class="result-icon">⚙️</div>
-          <div class="result-content">
-            <div class="result-title">Settings</div>
-            <div class="result-subtitle">App preferences</div>
-          </div>
-        </div> -->
-      </div>
-    </div>
+    </template>
 
-    <script src="renderer.js"></script>
+    <template id="tpl-action">
+      <div role="option" data-kind="action">
+        <i aria-hidden="true"></i>
+        <span><b></b></span>
+        <nav aria-label="Actions">
+          <button data-action="primary" aria-label="Run" title="Enter">↵</button>
+        </nav>
+      </div>
+    </template>
+
+    <main id="app" data-ready="false" data-startup-ms="">
+      <search>
+        <button id="tag" popovertarget="account-menu" aria-label="Account"></button>
+        <div id="input-wrap">
+          <input type="search" id="input" placeholder="Type to search…" spellcheck="false" autocomplete="off" />
+        </div>
+      </search>
+      <menu id="account-menu" popover>
+        <button role="menuitem">Settings</button>
+        <hr />
+        <button role="menuitem">Log out</button>
+      </menu>
+      <div role="listbox" id="results"></div>
+    </main>
+
+    <script type="module" src="./ui/renderer.js"></script>
   </body>
 </html>
